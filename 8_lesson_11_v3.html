@@ -1,0 +1,1826 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b3a9c">
+<title>Імітація Windows 11 — варіант 3 (бабусин ноутбук)</title>
+<style>
+:root{
+  --tbh:calc(48px + env(safe-area-inset-bottom,0px));
+  --accent:#0067c0;--bg:#f3f3f3;--card:#fff;--line:#e3e3e3;--txt:#1a1a1a;--sub:#5f5f5f;--sel:#cce4f7;
+  font-family:"Segoe UI Variable","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#0b3a9c;color:var(--txt);
+  touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;font-size:14px}
+body{height:100dvh}
+button{font:inherit;color:inherit}
+.i{display:inline-flex;width:var(--s,20px);height:var(--s,20px);flex:none}
+.i svg{width:100%;height:100%}
+.i.chrome{border-radius:50%;background:conic-gradient(from -30deg,#ea4335 0 120deg,#fbbc05 120deg 240deg,#34a853 240deg 360deg);position:relative}
+.i.chrome::before{content:"";position:absolute;inset:27%;border-radius:50%;background:#fff}
+.i.chrome::after{content:"";position:absolute;inset:34%;border-radius:50%;background:#4285f4}
+.g{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ---------- робочий стіл ---------- */
+#desktop{position:fixed;inset:0 0 var(--tbh) 0;overflow:hidden;
+  background:
+    radial-gradient(ellipse 55% 42% at 28% 58%,rgba(40,120,240,.95) 0,rgba(40,120,240,0) 70%),
+    radial-gradient(ellipse 48% 38% at 68% 36%,rgba(140,200,255,.95) 0,rgba(140,200,255,0) 70%),
+    radial-gradient(ellipse 42% 55% at 46% 78%,rgba(8,50,160,.95) 0,rgba(8,50,160,0) 75%),
+    radial-gradient(ellipse 30% 25% at 82% 80%,rgba(90,60,200,.55) 0,rgba(90,60,200,0) 70%),
+    linear-gradient(160deg,#cfe0fa,#86aeea 45%,#2b5fc0)}
+#icons{position:absolute;inset:0;padding:8px;display:grid;grid-auto-flow:column;grid-template-rows:repeat(auto-fill,94px);grid-auto-columns:86px;align-content:start;justify-content:start}
+.dicon{width:82px;height:90px;padding:6px 3px;border:1px solid transparent;border-radius:4px;display:flex;flex-direction:column;align-items:center;gap:5px;color:#fff;text-align:center;font-size:12px;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.dicon.sel{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.45)}
+.dicon span{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;word-break:break-word}
+#windows{position:absolute;inset:0;pointer-events:none}
+
+/* ---------- вікна ---------- */
+.win{position:absolute;pointer-events:auto;background:var(--bg);border:1px solid rgba(0,0,0,.28);border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden}
+.win.max{inset:0!important;width:auto!important;height:auto!important;border-radius:0}
+.win.min{display:none}
+.titlebar{height:36px;display:flex;align-items:center;background:#e9eef6;flex:none;padding-left:10px;gap:8px;font-size:12px}
+.win.active .titlebar{background:#dce7f7}
+.ttitle{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbtns{display:flex;height:100%}
+.tbtns button{width:46px;border:0;background:transparent;display:grid;place-items:center;padding:0}
+.tbtns button:active{background:rgba(0,0,0,.1)}
+.tbtns button.close:active{background:#c42b1c;color:#fff}
+.wbody{flex:1;min-height:0;display:flex;background:var(--bg)}
+.cq{container-type:inline-size;width:100%;height:100%;min-width:0}
+@media (max-width:759px){
+  .win{inset:0!important;width:auto!important;height:auto!important;border-radius:0}
+  .tbtns .maxb{display:none}
+  .tbtns button{width:52px}
+}
+
+/* ---------- панель завдань ---------- */
+#taskbar{position:fixed;left:0;right:0;bottom:0;height:var(--tbh);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5000;
+  background:rgba(243,243,243,.88);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);border-top:1px solid rgba(0,0,0,.1);
+  display:flex;align-items:center}
+#tbicons{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:4px;max-width:calc(100% - 190px);overflow:hidden}
+.tbb{width:44px;height:42px;border:0;background:transparent;border-radius:6px;display:grid;place-items:center;position:relative;padding:0}
+.tbb:active,.tbb.hot{background:rgba(0,0,0,.07)}
+.tbb.open::after{content:"";position:absolute;bottom:2px;left:50%;width:6px;height:3px;margin-left:-3px;border-radius:2px;background:#767676}
+.tbb.open.act::after{width:16px;margin-left:-8px;background:var(--accent)}
+#tray{position:absolute;right:6px;display:flex;align-items:center;gap:8px;font-size:12px;color:#222}
+#tray .hb{width:26px;height:26px;border-radius:50%;border:1px solid #8aa;background:#fff;color:var(--accent);font-weight:700;font-size:14px;padding:0}
+#tray .clk{text-align:right;line-height:1.25}
+#tray .lang{font-size:12px}
+@media (max-width:700px){
+  #tbicons{left:6px;transform:none;max-width:calc(100% - 140px)}
+  #tray .lang,#tray .vol,#tray .dt{display:none}
+}
+
+/* ---------- меню ---------- */
+.menu,.panel{position:fixed;z-index:5500;background:rgba(250,250,250,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #cfcfcf;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.menu[hidden],.panel[hidden]{display:none}
+.menu{padding:4px;min-width:230px;max-height:calc(100dvh - var(--tbh) - 12px);overflow:auto}
+.mi{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:5px;white-space:nowrap;font-size:14px}
+.mi:active{background:#e3ecf7}
+.mi .arr{margin-left:auto}
+.msep{height:1px;background:#dcdcdc;margin:3px 6px}
+#winx{left:8px;bottom:calc(var(--tbh) + 6px)}
+#ctx{z-index:6500;min-width:160px}
+.panel{left:50%;transform:translateX(-50%);bottom:calc(var(--tbh) + 8px);width:min(560px,calc(100vw - 16px));padding:18px;max-height:calc(100dvh - var(--tbh) - 20px);overflow:auto}
+.panel .srch{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d5d5d5;border-radius:18px;padding:8px 14px;color:#777;margin-bottom:14px}
+.panel h4{margin:0 0 8px;font-size:13px;font-weight:600}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.pit{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:6px;font-size:12px;text-align:center}
+.pit:active{background:#e3ecf7}
+.pfoot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #ddd;padding-top:10px;margin-top:6px;font-size:13px}
+
+/* ---------- сповіщення, модальні ---------- */
+#toast{position:fixed;left:50%;bottom:calc(var(--tbh) + 14px);transform:translate(-50%,20px);background:#2b2b2b;color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;max-width:calc(100vw - 24px);text-align:center;opacity:0;pointer-events:none;transition:.2s;z-index:8000}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:7000;display:grid;place-items:center;padding:12px}
+.dlg{background:#fff;border-radius:8px;box-shadow:0 12px 48px rgba(0,0,0,.4);width:min(460px,100%);max-height:calc(100dvh - 24px);display:flex;flex-direction:column;overflow:hidden}
+.dlg header{padding:12px 16px;background:#f3f3f3;border-bottom:1px solid #e0e0e0;font-weight:600;font-size:14px}
+.dlg .db{padding:16px;overflow:auto;font-size:14px;line-height:1.45}
+.dlg footer{padding:10px 16px;display:flex;justify-content:flex-end;gap:8px;background:#f3f3f3;border-top:1px solid #e0e0e0}
+.dlg footer:empty{display:none}
+.btn{border:1px solid #c9c9c9;background:#fdfdfd;border-radius:5px;padding:7px 18px;font-size:14px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:active{filter:brightness(.92)}
+.spin{width:28px;height:28px;border:3px solid #cfe3f7;border-top-color:var(--accent);border-radius:50%;animation:sp .8s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.hint li{margin-bottom:6px}
+
+/* ---------- таблиці ---------- */
+.tblwrap{flex:1;overflow:auto;min-height:0;overscroll-behavior:contain;background:#fff}
+.tbl{border-collapse:separate;border-spacing:0;width:100%;min-width:620px;font-size:13px;background:#fff}
+.tbl th{position:sticky;top:0;z-index:2;background:#fff;font-weight:400;text-align:right;padding:6px 10px 4px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:bottom}
+.tbl th .hv{display:block;font-size:15px;line-height:1.2;min-height:18px}
+.tbl th .hl{display:block;font-size:12px;color:var(--sub)}
+.tbl th:first-child,.tbl td:first-child{text-align:left;position:sticky;left:0;z-index:1;background:#fff;max-width:260px}
+.tbl th:first-child{z-index:3}
+.tbl td{padding:0 10px;height:36px;text-align:right;border-bottom:1px solid #f1f1f1;white-space:nowrap}
+.tbl td:first-child{overflow:hidden;text-overflow:ellipsis}
+.tbl tr.grp td{background:#f7f7f7!important;font-weight:600;color:#2a2a2a;height:30px;font-size:12px}
+.tbl tr.sel td{background:var(--sel)!important}
+.tbl tr.kid td:first-child{padding-left:40px}
+.tbl .nm{display:flex;align-items:center;gap:8px}
+.tbl .chev{width:14px;display:inline-flex;justify-content:center;color:#666;flex:none}
+.tbl th.sortable{cursor:pointer}
+.tbl th.l,.tbl td.l{text-align:left}
+.tblwrap{container-type:inline-size}
+@container (max-width:540px){
+  .tbl{min-width:0;font-size:12px}
+  .tbl th,.tbl td{padding-left:6px;padding-right:6px}
+  .tbl th:first-child,.tbl td:first-child{max-width:112px;min-width:112px}
+  .tbl td:first-child{white-space:normal;line-height:1.15}
+  .tbl .nm{gap:3px}
+  .tbl .chev{width:12px}
+  .tbl tr.kid td:first-child{padding-left:20px}
+  .tbl th .hv{font-size:14px}
+}
+.tmhd{display:flex;align-items:center;gap:10px;padding:10px 12px;flex:none;flex-wrap:wrap}
+.tmhd h2{margin:0;font-size:18px;font-weight:600;flex:1;min-width:120px}
+.tmhd .btn{padding:5px 12px;font-size:13px}
+
+/* ---------- диспетчер завдань ---------- */
+.tm{display:flex;height:100%;position:relative;background:var(--bg)}
+.tm-rail{width:46px;flex:none;background:#eef2f8;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:6px 4px;gap:2px;z-index:20;overflow:hidden}
+.tm-rail.ex{width:220px;position:absolute;inset:0 auto 0 0;box-shadow:4px 0 16px rgba(0,0,0,.18)}
+.tm-rail button{display:flex;align-items:center;gap:12px;border:0;background:transparent;border-radius:5px;padding:0 10px;height:38px;white-space:nowrap;text-align:left;position:relative}
+.tm-rail button.on{background:#dfe9f6}
+.tm-rail button.on::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:2px;background:var(--accent)}
+.tm-rail .sp{flex:1}
+.tm-pg{flex:1;min-width:0;display:flex;flex-direction:column}
+.tm-bd{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.tm-bd>.perf{flex:1;height:auto;min-height:0}
+.perf{display:grid;grid-template-columns:210px 1fr;height:100%;min-height:0}
+.pl{overflow:auto;border-right:1px solid var(--line);padding:6px;background:#fafafa}
+.pli{display:flex;gap:8px;align-items:center;padding:8px;border-radius:6px;border:1px solid transparent}
+.pli.on{background:#dfe9f6;border-color:#bcd3ee}
+.pli canvas{width:62px;height:42px;border:1px solid #c9d3e0;background:#fff;flex:none}
+.pli b{display:block;font-size:13px}
+.pli small{display:block;color:var(--sub);font-size:11.5px;line-height:1.3}
+.pd{overflow:auto;padding:14px 16px;background:#fff;min-width:0}
+.pd h3{margin:0;font-size:20px;font-weight:600}
+.pd .sub{color:var(--sub);font-size:12px;margin:2px 0 10px}
+.pd canvas.big{width:100%;aspect-ratio:600/200;border:1px solid #b8c7da;background:#fbfdff;display:block}
+.pd .lbl{display:flex;justify-content:space-between;color:var(--sub);font-size:11.5px;margin:3px 0 10px}
+.stg{display:grid;grid-template-columns:1fr 1fr;gap:6px 22px;font-size:12.5px}
+.stg .sts div{display:flex;justify-content:space-between;gap:10px;padding:3px 0;border-bottom:1px solid #f0f0f0}
+.stg .sts div span:first-child{color:var(--sub)}
+.stg .sts div span:last-child{text-align:right;font-weight:500}
+@container (max-width:640px){
+  .perf{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .pl{display:flex;gap:6px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}
+  .pli{min-width:176px}
+  .stg{grid-template-columns:1fr}
+}
+
+/* ---------- провідник ---------- */
+.ex{display:flex;flex-direction:column;height:100%;background:#fff;position:relative}
+.ex-top{display:flex;align-items:center;gap:6px;padding:8px;background:var(--bg);flex:none}
+.ex-top .nb{width:34px;height:32px;border:0;background:transparent;border-radius:5px;display:grid;place-items:center;padding:0}
+.ex-top .nb:active{background:#e0e0e0}
+.ex-top .nb[disabled]{opacity:.35}
+.ex-addr{flex:1;min-width:0;height:32px;background:#fff;border:1px solid #d4d4d4;border-radius:5px;display:flex;align-items:center;gap:4px;padding:0 10px;overflow:hidden;white-space:nowrap;font-size:13px}
+.ex-srch{width:150px;height:32px;background:#fff;border:1px solid #d4d4d4;border-radius:5px;padding:0 10px;display:flex;align-items:center;color:#888;gap:6px;font-size:13px}
+.ex-cmd{display:flex;gap:16px;padding:6px 12px;border-bottom:1px solid var(--line);color:#777;font-size:13px;flex:none;overflow:hidden;white-space:nowrap}
+.ex-main{flex:1;display:flex;min-height:0;position:relative}
+.ex-nav{width:200px;flex:none;overflow:auto;padding:6px;border-right:1px solid var(--line);background:#fff}
+.nvi{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:5px;font-size:13px}
+.nvi.on{background:var(--sel)}
+.nvi.sub{padding-left:28px}
+.nvh{font-size:12px;color:var(--sub);padding:10px 10px 4px}
+.ex-view{flex:1;min-width:0;overflow:auto;overscroll-behavior:contain;padding:10px 14px}
+.ex-st{height:26px;flex:none;border-top:1px solid var(--line);padding:4px 12px;font-size:12px;color:var(--sub);background:#fff}
+.sec{font-size:13px;font-weight:600;color:#222;margin:6px 0 8px;display:flex;align-items:center;gap:8px}
+.sec::after{content:"";flex:1;height:1px;background:var(--line)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:14px}
+.tile{display:flex;align-items:center;gap:10px;padding:8px;border-radius:6px;border:1px solid transparent;font-size:13px}
+.tile.sel,.drive.sel{background:var(--sel);border-color:#9cc8ee}
+.drive{display:flex;gap:12px;align-items:center;padding:10px;border-radius:6px;border:1px solid transparent;max-width:340px}
+.drive .dn{font-size:13.5px}
+.dbar{height:14px;border:1px solid #c5c5c5;background:#e6e6e6;margin:5px 0 4px;width:100%}
+.dbar>div{height:100%;background:#26a0da}
+.dbar.low>div{background:#da2626}
+.drive small{color:var(--sub);font-size:12px}
+.flist{width:100%;border-collapse:collapse;font-size:13px;min-width:430px}
+.flist th{font-weight:400;text-align:left;color:var(--sub);padding:4px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.flist td{padding:6px 10px;white-space:nowrap}
+.flist td.r,.flist th.r{text-align:right}
+.frow.sel td{background:var(--sel)}
+.flist td:first-child{display:flex;align-items:center;gap:8px;overflow:hidden;text-overflow:ellipsis}
+.empty{color:var(--sub);padding:30px 6px;text-align:center}
+.hamb{display:none!important}
+@container (max-width:600px){
+  .ex-nav{display:none;position:absolute;left:0;top:0;bottom:0;z-index:5;box-shadow:4px 0 16px rgba(0,0,0,.2)}
+  .ex-nav.show{display:block}
+  .hamb{display:grid!important}
+  .ex-srch{display:none}
+  .flist .c-date,.flist .c-type{display:none}
+  .flist{min-width:0}
+}
+
+/* ---------- диспетчер пристроїв ---------- */
+.dm{display:flex;flex-direction:column;height:100%;background:#fff;font-size:13px;width:100%}
+.dm-menu{display:flex;gap:16px;padding:6px 12px;border-bottom:1px solid var(--line);flex:none;color:#333}
+.dm-tb{display:flex;gap:6px;padding:4px 8px;border-bottom:1px solid var(--line);flex:none;color:#888}
+.dm-tb span{width:26px;height:24px;display:grid;place-items:center;border-radius:4px;background:#f2f2f2;font-size:12px}
+.dm-tree{flex:1;overflow:auto;padding:6px 4px;overscroll-behavior:contain}
+.tn{display:flex;align-items:center;gap:6px;padding:7px 6px;border-radius:4px;white-space:nowrap}
+.tn.sel{background:var(--sel)}
+.tn .chev{width:14px;display:inline-flex;justify-content:center;color:#666;flex:none}
+.tkids{margin-left:20px;border-left:1px dotted #bbb;padding-left:4px}
+.dm-st{flex:none;border-top:1px solid var(--line);padding:5px 10px;font-size:12px;color:var(--sub)}
+.prp{display:grid;grid-template-columns:120px 1fr;gap:6px 10px;margin:12px 0;font-size:13px}
+.prp span:nth-child(odd){color:var(--sub)}
+.statbox{border:1px solid #cfcfcf;border-radius:4px;padding:10px;margin-top:10px;background:#fafafa}
+
+/* ---------- налаштування ---------- */
+.st{display:flex;height:100%;position:relative;background:var(--bg)}
+.st-nav{width:270px;flex:none;overflow:auto;padding:12px 10px;background:var(--bg);z-index:5}
+.st-user{display:flex;align-items:center;gap:12px;padding:6px 8px 14px}
+.avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6ea8ff,#3a63d1);display:grid;place-items:center;color:#fff;font-size:22px;font-weight:600;flex:none}
+.st-srch{background:#fff;border:1px solid #d6d6d6;border-radius:5px;padding:7px 10px;color:#888;margin:0 4px 10px;font-size:13px}
+.sni{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:6px;font-size:14px;position:relative}
+.sni.on{background:#e6e6e6}
+.sni.on::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:2px;background:var(--accent)}
+.gi{display:inline-flex;width:22px;height:22px;flex:none}
+.gi svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.st-main{flex:1;min-width:0;overflow:auto;padding:14px 22px 24px;overscroll-behavior:contain}
+.st-h{display:flex;align-items:center;gap:10px;margin:2px 0 16px}
+.st-h h1{margin:0;font-size:26px;font-weight:600;line-height:1.2}
+.st-h h1 .bc{color:var(--sub)}
+.st-ham{display:none;width:38px;height:36px;border:0;background:transparent;border-radius:5px;place-items:center;padding:0;flex:none}
+.card{background:#fff;border:1px solid var(--line);border-radius:6px;margin-bottom:6px}
+.row{display:flex;align-items:center;gap:14px;padding:14px 16px;min-height:62px}
+.row+.row{border-top:1px solid #efefef}
+.row .gi{width:24px;height:24px}
+.row .rt{flex:1;min-width:0}
+.row .rt b{display:block;font-weight:400;font-size:14px}
+.row .rt small{display:block;color:var(--sub);font-size:12px;margin-top:1px}
+.row .rv{color:var(--sub);font-size:13px;text-align:right}
+.row.link:active{background:#f3f7fc}
+.devcard{display:flex;align-items:center;gap:16px;padding:6px 2px 16px}
+.devcard h2{margin:0;font-size:20px;font-weight:600}
+.devcard small{color:var(--sub)}
+.st-sec{font-size:15px;font-weight:600;margin:20px 0 8px;display:flex;align-items:center}
+.kv{display:grid;grid-template-columns:200px 1fr;gap:10px 12px;padding:14px 16px;font-size:13.5px}
+.kv div:nth-child(odd){color:var(--sub)}
+.kv div{overflow-wrap:anywhere}
+.cbtn{margin-left:auto;font-size:13px;padding:5px 14px}
+.bar{height:10px;border-radius:5px;background:#e6e6e6;overflow:hidden;margin:6px 0 0}
+.bar>i{display:block;height:100%;background:var(--accent)}
+.bar.red>i{background:#c42b1c}
+@container (max-width:680px){
+  .st-nav{display:none;position:absolute;left:0;top:0;bottom:0;box-shadow:4px 0 18px rgba(0,0,0,.25);width:min(290px,86%)}
+  .st-nav.show{display:block}
+  .st-ham{display:grid}
+  .st-main{padding:10px 12px 20px}
+  .st-h h1{font-size:21px}
+  .kv{grid-template-columns:1fr;gap:2px 0}
+  .kv div:nth-child(even){margin-bottom:10px}
+}
+
+/* ---------- Chrome ---------- */
+.ch{display:flex;flex-direction:column;height:100%;background:#fff;width:100%}
+.ch-tabs{display:flex;gap:2px;background:#dde3ee;padding:6px 6px 0;overflow-x:auto;flex:none}
+.ch-tab{flex:none;max-width:150px;min-width:110px;background:#e8edf5;border-radius:8px 8px 0 0;padding:7px 10px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-tab.on{background:#fff}
+.ch-bar{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid #e3e3e3;flex:none}
+.ch-url{flex:1;background:#eef1f6;border-radius:16px;padding:6px 14px;color:#555;font-size:13px}
+.ch-pg{flex:1;display:grid;place-items:center;padding:20px;text-align:center;overflow:auto}
+.ch-pg>div{max-width:420px}
+</style>
+</head>
+<body>
+
+<div id="desktop"><div id="icons"></div><div id="windows"></div></div>
+
+<div id="start" class="panel" hidden></div>
+<div id="winx" class="menu" hidden></div>
+<div id="ctx" class="menu" hidden></div>
+
+<div id="taskbar">
+  <div id="tbicons"></div>
+  <div id="tray">
+    <button class="hb" id="hintbtn" aria-label="Підказка">?</button>
+    <span class="lang">УКР</span>
+    <svg class="g" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M2 9a15 15 0 0 1 20 0M5 12.5a10.5 10.5 0 0 1 14 0M8.5 16a5.5 5.5 0 0 1 7 0"/><circle cx="12" cy="19.2" r=".8" fill="currentColor"/></svg>
+    <svg class="g vol" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4zM15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/></svg>
+    <svg class="g" viewBox="0 0 24 24" style="width:20px;height:20px"><rect x="2.5" y="8" width="16" height="9" rx="2"/><path d="M21 11v3"/><rect x="4.5" y="10" width="9" height="5" fill="currentColor" stroke="none" rx="1"/></svg>
+    <div class="clk"><div id="clock">14:05</div><div class="dt" id="cdate">02.10.2026</div></div>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="modals"></div>
+
+<script>
+/* =====================================================================
+   КОНФІГУРАЦІЯ ВАРІАНТУ — усі дані пристрою тут.
+   Щоб зробити інший варіант (інший «комп'ютер»), копіюють файл і змінюють лише цей блок.
+   ===================================================================== */
+const PC = {
+  "variant": "Варіант 3 — бабусин ноутбук",
+  "who": "бабусин ноутбук",
+  "owner": "Бабуся",
+  "device": "BABUSYA-PC",
+  "model": "Ноутбук (імітація)",
+  "cpu": {
+    "name": "Intel(R) Pentium(R) CPU N3540 @ 2.16GHz",
+    "base": 2.16,
+    "boost": 2.4,
+    "cores": 4,
+    "threads": 4,
+    "sockets": 1,
+    "l1": "256 КБ",
+    "l2": "2,0 МБ",
+    "l3": "—",
+    "target": 58
+  },
+  "ram": {
+    "installed": "4,00 ГБ",
+    "totalMB": 4096,
+    "usableMB": 3965,
+    "usedMB": 3490,
+    "speed": "1600 МГц",
+    "slots": "1 з 2",
+    "form": "SODIMM"
+  },
+  "disk": {
+    "label": "Локальний диск (C:)",
+    "type": "HDD",
+    "model": "ST500LM030-1RK17D (HDD)",
+    "totalGB": 500,
+    "freeGB": 112,
+    "activity": 98,
+    "breakdown": [
+      [
+        "Системні та зарезервовані файли",
+        30.0
+      ],
+      [
+        "Програми та компоненти",
+        52.4
+      ],
+      [
+        "Відео",
+        96.0
+      ],
+      [
+        "Зображення",
+        74.8
+      ],
+      [
+        "Документи",
+        12.3
+      ],
+      [
+        "Тимчасові файли",
+        4.5
+      ],
+      [
+        "Інше",
+        118.0
+      ]
+    ]
+  },
+  "gpu": {
+    "name": "Intel(R) HD Graphics",
+    "memLabel": "Спільна пам'ять ГП",
+    "memVal": "0,4/1,8 ГБ",
+    "driver": "10.18.10.4358",
+    "driverDate": "14.11.2017"
+  },
+  "net": {
+    "label": "Wi-Fi",
+    "ssid": "Babusya_WiFi",
+    "type": "802.11n",
+    "ip": "192.168.0.17"
+  },
+  "os": {
+    "edition": "Windows 11 Домашня",
+    "version": "23H2",
+    "build": "22631.4602",
+    "installed": "20.01.2023",
+    "pen": "Сенсорне введення недоступне"
+  },
+  "ids": {
+    "device": "5D7A0E93-8C42-4B16-A1F5-3E9C60B27D84",
+    "product": "00342-00000-00000-AA104"
+  },
+  "procs": [
+    {
+      "id": "chrome",
+      "name": "Google Chrome (9)",
+      "grp": "app",
+      "exe": "chrome.exe",
+      "pid": 4120,
+      "cpu": 14,
+      "mem": 1250,
+      "disk": 1.2,
+      "net": 0.5,
+      "gpu": 2,
+      "desc": "Браузер",
+      "kids": true
+    },
+    {
+      "id": "word",
+      "name": "Текстовий процесор",
+      "grp": "app",
+      "exe": "TextEditor.exe",
+      "pid": 5320,
+      "cpu": 1.0,
+      "mem": 260,
+      "disk": 0.2,
+      "net": 0,
+      "gpu": 0.3,
+      "desc": "Текстовий процесор"
+    },
+    {
+      "id": "explorer",
+      "name": "Провідник",
+      "grp": "app",
+      "exe": "explorer.exe",
+      "pid": 3180,
+      "cpu": 0.5,
+      "mem": 80,
+      "disk": 0,
+      "net": 0,
+      "gpu": 0.2,
+      "desc": "Провідник Windows"
+    },
+    {
+      "id": "taskmgr",
+      "name": "Диспетчер завдань",
+      "grp": "app",
+      "exe": "Taskmgr.exe",
+      "pid": 9012,
+      "cpu": 1.5,
+      "mem": 30,
+      "disk": 0,
+      "net": 0,
+      "gpu": 0.1,
+      "desc": "Диспетчер завдань"
+    },
+    {
+      "id": "solit",
+      "name": "Пасьянс",
+      "grp": "app",
+      "exe": "Solitaire.exe",
+      "pid": 6420,
+      "cpu": 0.3,
+      "mem": 60,
+      "disk": 0,
+      "net": 0,
+      "gpu": 0.5,
+      "desc": "Гра-пасьянс"
+    },
+    {
+      "id": "av",
+      "name": "Антивірусна програма",
+      "grp": "bg",
+      "exe": "AVService.exe",
+      "pid": 2210,
+      "cpu": 12,
+      "mem": 190,
+      "disk": 18,
+      "net": 0.1,
+      "gpu": 0,
+      "desc": "Захист від вірусів"
+    },
+    {
+      "id": "search",
+      "name": "Панель швидкого пошуку",
+      "grp": "bg",
+      "exe": "QuickSearch.exe",
+      "pid": 3320,
+      "cpu": 4,
+      "mem": 110,
+      "disk": 0.6,
+      "net": 0.2,
+      "gpu": 0,
+      "desc": "Панель пошуку"
+    },
+    {
+      "id": "cloud",
+      "name": "Хмарна синхронізація",
+      "grp": "bg",
+      "exe": "CloudSync.exe",
+      "pid": 2874,
+      "cpu": 3,
+      "mem": 90,
+      "disk": 2.5,
+      "net": 0.2,
+      "gpu": 0,
+      "desc": "Синхронізація файлів"
+    },
+    {
+      "id": "upd",
+      "name": "Служба оновлення Windows",
+      "grp": "bg",
+      "exe": "svchost.exe",
+      "pid": 1568,
+      "cpu": 8,
+      "mem": 150,
+      "disk": 12,
+      "net": 0.4,
+      "gpu": 0,
+      "desc": "Оновлення системи"
+    },
+    {
+      "id": "msg",
+      "name": "Месенджер",
+      "grp": "bg",
+      "exe": "Messenger.exe",
+      "pid": 5144,
+      "cpu": 0.6,
+      "mem": 70,
+      "disk": 0.1,
+      "net": 0.1,
+      "gpu": 0,
+      "desc": "Месенджер"
+    },
+    {
+      "id": "cleaner",
+      "name": "Швидкий очищувач ПК",
+      "grp": "bg",
+      "exe": "FastCleaner.exe",
+      "pid": 7210,
+      "cpu": 5,
+      "mem": 120,
+      "disk": 1.5,
+      "net": 0.3,
+      "gpu": 0,
+      "desc": "Програма «очищення»"
+    },
+    {
+      "id": "sys",
+      "name": "Системні процеси Windows",
+      "grp": "bg",
+      "exe": "System",
+      "pid": 4,
+      "cpu": null,
+      "mem": null,
+      "disk": 1.0,
+      "net": 0,
+      "gpu": 0,
+      "desc": "Службові процеси",
+      "auto": true
+    }
+  ],
+  "tabs": [
+    "Новини",
+    "Погода",
+    "Вікіпедія",
+    "Розклад уроків",
+    "Електронний щоденник",
+    "Пошта",
+    "Автомобілі: огляд",
+    "Рецепти",
+    "Курс валют"
+  ],
+  "startup": [
+    [
+      "Швидкий очищувач ПК",
+      "Невідомий видавець",
+      "Увімкнено",
+      "Високий"
+    ],
+    [
+      "Антивірусна програма",
+      "ВірусСтоп",
+      "Увімкнено",
+      "Високий"
+    ],
+    [
+      "Панель швидкого пошуку",
+      "ПошукПлюс",
+      "Увімкнено",
+      "Високий"
+    ],
+    [
+      "Хмарна синхронізація",
+      "ХмараДиск",
+      "Увімкнено",
+      "Високий"
+    ],
+    [
+      "Помічник онлайн-кінотеатру",
+      "Кіно Онлайн",
+      "Увімкнено",
+      "Високий"
+    ],
+    [
+      "Оновлення програм (Updater)",
+      "Різні видавці",
+      "Увімкнено",
+      "Високий"
+    ],
+    [
+      "Месенджер",
+      "Месенджер Inc.",
+      "Увімкнено",
+      "Високий"
+    ],
+    [
+      "Музичний плеєр",
+      "Студія Звук",
+      "Увімкнено",
+      "Середній"
+    ],
+    [
+      "Пасьянс",
+      "Ігри Плюс",
+      "Увімкнено",
+      "Середній"
+    ],
+    [
+      "Принтер: засіб сканування",
+      "Виробник принтера",
+      "Увімкнено",
+      "Середній"
+    ],
+    [
+      "Оновлення драйверів",
+      "Виробник ноутбука",
+      "Увімкнено",
+      "Середній"
+    ],
+    [
+      "Помічник перегляду фото",
+      "Фото Софт",
+      "Увімкнено",
+      "Середній"
+    ],
+    [
+      "Google Chrome",
+      "Google LLC",
+      "Увімкнено",
+      "Низький"
+    ],
+    [
+      "Звуковий драйвер",
+      "Realtek",
+      "Увімкнено",
+      "Низький"
+    ],
+    [
+      "Офісний помічник",
+      "Офісні програми",
+      "Увімкнено",
+      "Низький"
+    ]
+  ],
+  "history": [
+    [
+      "Провідник",
+      "1:12:41",
+      "0 МБ",
+      "0 МБ"
+    ],
+    [
+      "Google Chrome",
+      "6:48:20",
+      "2 140 МБ",
+      "0 МБ"
+    ],
+    [
+      "Текстовий процесор",
+      "1:30:07",
+      "4 МБ",
+      "0 МБ"
+    ],
+    [
+      "Пасьянс",
+      "2:55:00",
+      "0 МБ",
+      "0 МБ"
+    ],
+    [
+      "Месенджер",
+      "1:07:30",
+      "184 МБ",
+      "0 МБ"
+    ]
+  ],
+  "services": [
+    [
+      "AudioEndpointBuilder",
+      1120,
+      "Побудовник кінцевих точок звуку",
+      "Виконується",
+      "LocalSystemNetworkRestricted"
+    ],
+    [
+      "Audiosrv",
+      1388,
+      "Звук Windows",
+      "Виконується",
+      "LocalServiceNetworkRestricted"
+    ],
+    [
+      "BthAvctpSvc",
+      2410,
+      "Служба AVCTP",
+      "Виконується",
+      "LocalService"
+    ],
+    [
+      "Dnscache",
+      1604,
+      "DNS-клієнт",
+      "Виконується",
+      "NetworkService"
+    ],
+    [
+      "Dhcp",
+      1472,
+      "DHCP-клієнт",
+      "Виконується",
+      "LocalServiceNetworkRestricted"
+    ],
+    [
+      "EventLog",
+      1296,
+      "Журнал подій Windows",
+      "Виконується",
+      "LocalServiceNetworkRestricted"
+    ],
+    [
+      "Spooler",
+      2104,
+      "Диспетчер черги друку",
+      "Виконується",
+      "—"
+    ],
+    [
+      "WlanSvc",
+      1832,
+      "Автонастроювання WLAN",
+      "Виконується",
+      "LocalSystemNetworkRestricted"
+    ],
+    [
+      "wuauserv",
+      1568,
+      "Центр оновлення Windows",
+      "Виконується",
+      "netsvcs"
+    ],
+    [
+      "WinDefend",
+      2210,
+      "Антивірусна служба",
+      "Виконується",
+      "—"
+    ],
+    [
+      "BITS",
+      "",
+      "Фонова служба передавання",
+      "Зупинено",
+      "netsvcs"
+    ],
+    [
+      "Fax",
+      "",
+      "Факс",
+      "Зупинено",
+      "—"
+    ],
+    [
+      "SysMain",
+      2760,
+      "Підвищення швидкодії системи",
+      "Виконується",
+      "LocalSystemNetworkRestricted"
+    ],
+    [
+      "Themes",
+      1944,
+      "Теми",
+      "Виконується",
+      "netsvcs"
+    ],
+    [
+      "TabletInputService",
+      "",
+      "Служба сенсорної клавіатури",
+      "Зупинено",
+      "LocalSystemNetworkRestricted"
+    ]
+  ],
+  "devices": [
+    [
+      "Bluetooth",
+      "bt",
+      [
+        [
+          "Intel(R) Wireless Bluetooth(R)",
+          "Intel Corporation"
+        ]
+      ]
+    ],
+    [
+      "Аудіовходи й аудіовиходи",
+      "sound",
+      [
+        [
+          "Динаміки (Realtek(R) Audio)",
+          "Realtek"
+        ],
+        [
+          "Мікрофон (Realtek(R) Audio)",
+          "Realtek"
+        ]
+      ]
+    ],
+    [
+      "Батареї",
+      "bat",
+      [
+        [
+          "Адаптер змінного струму (Microsoft)",
+          "Microsoft"
+        ],
+        [
+          "Батарея, сумісна з ACPI (Microsoft)",
+          "Microsoft"
+        ]
+      ]
+    ],
+    [
+      "Відеоадаптери",
+      "monitor",
+      [
+        [
+          "Intel(R) HD Graphics",
+          "Виробник відеоадаптера"
+        ]
+      ]
+    ],
+    [
+      "Дискові пристрої",
+      "disk",
+      [
+        [
+          "ST500LM030-1RK17D (HDD)",
+          "(Стандартні дискові накопичувачі)"
+        ]
+      ]
+    ],
+    [
+      "Камери",
+      "cam",
+      [
+        [
+          "Інтегрована вебкамера HD",
+          "Виробник ноутбука"
+        ]
+      ]
+    ],
+    [
+      "Клавіатури",
+      "kbd",
+      [
+        [
+          "Стандартна клавіатура PS/2",
+          "Microsoft"
+        ]
+      ]
+    ],
+    [
+      "Контролери запам'ятовувальних пристроїв",
+      "disk",
+      [
+        [
+          "Контролер SATA AHCI (стандартний)",
+          "Microsoft"
+        ],
+        [
+          "Контролер дискових просторів Microsoft",
+          "Microsoft"
+        ]
+      ]
+    ],
+    [
+      "Контролери USB",
+      "usb",
+      [
+        [
+          "Кореневий USB-концентратор (USB 3.0)",
+          "Microsoft"
+        ],
+        [
+          "Узагальнений USB-концентратор",
+          "Microsoft"
+        ]
+      ]
+    ],
+    [
+      "Мережні адаптери",
+      "net",
+      [
+        [
+          "Realtek RTL8723BE Wireless LAN 802.11n",
+          "Виробник адаптера"
+        ]
+      ]
+    ],
+    [
+      "Миші та інші вказівні пристрої",
+      "mouse",
+      [
+        [
+          "Сенсорна панель (сумісна з HID)",
+          "Microsoft"
+        ]
+      ]
+    ],
+    [
+      "Монітори",
+      "monitor",
+      [
+        [
+          "Універсальний монітор PnP",
+          "(Стандартні монітори)"
+        ]
+      ]
+    ],
+    [
+      "Процесори",
+      "chip",
+      [
+        [
+          "Intel(R) Pentium(R) CPU N3540 @ 2.16GHz",
+          "Intel"
+        ],
+        [
+          "Intel(R) Pentium(R) CPU N3540 @ 2.16GHz",
+          "Intel"
+        ],
+        [
+          "Intel(R) Pentium(R) CPU N3540 @ 2.16GHz",
+          "Intel"
+        ],
+        [
+          "Intel(R) Pentium(R) CPU N3540 @ 2.16GHz",
+          "Intel"
+        ]
+      ]
+    ]
+  ],
+  "fs": {
+    "desktop": [
+      [
+        "Реферат_Україна.docx",
+        "doc",
+        "28.09.2026 18:20",
+        0.04
+      ],
+      [
+        "Фото з походу.jpg",
+        "img",
+        "21.09.2026 11:02",
+        4.8
+      ],
+      [
+        "Презентація_Космос.pptx",
+        "ppt",
+        "14.09.2026 20:41",
+        18
+      ],
+      [
+        "Проєкт_монтаж",
+        "folder",
+        "02.10.2026 09:12",
+        null
+      ]
+    ],
+    "documents": [
+      [
+        "Домашні завдання",
+        "folder",
+        "01.10.2026 16:30",
+        null
+      ],
+      [
+        "Реферат_Україна.docx",
+        "doc",
+        "28.09.2026 18:20",
+        0.04
+      ],
+      [
+        "Таблиця_оцінок.xlsx",
+        "doc",
+        "10.09.2026 08:50",
+        0.07
+      ],
+      [
+        "Конспект_інформатика.docx",
+        "doc",
+        "24.09.2026 19:15",
+        0.02
+      ]
+    ],
+    "downloads": [
+      [
+        "Установка_швидкий_очищувач.exe",
+        "exe",
+        "02.10.2026 08:12",
+        78
+      ],
+      [
+        "Установка_панель_пошуку.exe",
+        "exe",
+        "02.10.2026 08:10",
+        64
+      ],
+      [
+        "рецепти.pdf",
+        "pdf",
+        "20.09.2026 18:01",
+        8.4
+      ],
+      [
+        "онлайн-кіно_запис.mp4",
+        "video",
+        "11.09.2026 21:40",
+        1800
+      ]
+    ],
+    "pictures": [
+      [
+        "Сімейний архів",
+        "folder",
+        "15.08.2026 10:00",
+        null
+      ],
+      [
+        "Онуки_01.jpg",
+        "img",
+        "21.09.2026 11:02",
+        4.2
+      ],
+      [
+        "Дача",
+        "folder",
+        "29.09.2026 21:12",
+        null
+      ]
+    ],
+    "music": [
+      [
+        "Улюблені пісні",
+        "folder",
+        "03.09.2026 19:00",
+        null
+      ],
+      [
+        "запис_голосу.mp3",
+        "audio",
+        "18.09.2026 15:20",
+        6.2
+      ]
+    ],
+    "videos": [
+      [
+        "Онуки_літо.mp4",
+        "video",
+        "15.08.2026 20:15",
+        9200
+      ],
+      [
+        "Свято_родини.mp4",
+        "video",
+        "29.07.2026 21:02",
+        6800
+      ],
+      [
+        "Заготовки",
+        "folder",
+        "20.09.2026 17:10",
+        null
+      ]
+    ],
+    "c": [
+      [
+        "Windows",
+        "folder",
+        "12.09.2024 09:00",
+        null
+      ],
+      [
+        "Program Files",
+        "folder",
+        "12.09.2024 09:00",
+        null
+      ],
+      [
+        "Program Files (x86)",
+        "folder",
+        "12.09.2024 09:00",
+        null
+      ],
+      [
+        "Users",
+        "folder",
+        "12.09.2024 09:00",
+        null
+      ],
+      [
+        "Temp",
+        "folder",
+        "02.10.2026 08:40",
+        null
+      ]
+    ]
+  }
+};
+
+/* =====================================================================
+   Службові функції
+   ===================================================================== */
+const NB=' ';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const grp=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,NB);
+const f1=n=>n.toFixed(1).replace('.',',');
+const f2=n=>n.toFixed(2).replace('.',',');
+const mbText=mb=>{const [i,d]=mb.toFixed(1).split('.');return grp(+i)+','+d+NB+'МБ';};
+const sizeText=mb=>mb==null?'':mb<1?Math.max(1,Math.round(mb*1024))+NB+'КБ':mb>=1024?f1(mb/1024)+NB+'ГБ':Math.round(mb)+NB+'МБ';
+const heat=p=>p<1?'':`hsl(${Math.round(50-p*0.5)},95%,${Math.round(93-p*0.25)}%)`;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const ICON={
+  win:'<svg viewBox="0 0 24 24"><rect x="2.5" y="2.5" width="9" height="9" fill="#0a84e8"/><rect x="12.5" y="2.5" width="9" height="9" fill="#0a84e8"/><rect x="2.5" y="12.5" width="9" height="9" fill="#0a84e8"/><rect x="12.5" y="12.5" width="9" height="9" fill="#0a84e8"/></svg>',
+  folder:'<svg viewBox="0 0 24 24"><path d="M2 6a2 2 0 0 1 2-2h5l2 2h9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" fill="#e8b23a"/><path d="M2 9.5h20V18a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" fill="#ffd45e"/></svg>',
+  pc:'<svg viewBox="0 0 24 24"><rect x="2" y="3.5" width="20" height="13" rx="1.6" fill="#2a8cf0"/><rect x="3.5" y="5" width="17" height="10" fill="#8fd0ff"/><path d="M9 20h6M12 16.5V20" stroke="#6b7a8c" stroke-width="2" stroke-linecap="round"/></svg>',
+  drive:'<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" fill="#b9c2cd"/><rect x="2" y="12.5" width="20" height="4.5" rx="2" fill="#8d98a6"/><circle cx="18.5" cy="14.8" r="1" fill="#4cd137"/></svg>',
+  bin:'<svg viewBox="0 0 24 24"><path d="M5 7h14l-1.3 13H6.3z" fill="#bcd6ee" stroke="#6c93b8" stroke-width="1.2"/><path d="M3.5 6h17M9 6V4h6v2" stroke="#6c93b8" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>',
+  doc:'<svg viewBox="0 0 24 24"><path d="M5 2h9l5 5v15H5z" fill="#fff" stroke="#9aa6b4"/><path d="M14 2v5h5" fill="#dfe6ee"/><rect x="7" y="10" width="10" height="1.6" fill="#2b6cd8"/><rect x="7" y="13.5" width="10" height="1.6" fill="#2b6cd8"/><rect x="7" y="17" width="6" height="1.6" fill="#2b6cd8"/></svg>',
+  img:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" fill="#dff1ff" stroke="#7fb0d8"/><path d="M3.5 18l5-6 4 4.5 3-3L20.5 18z" fill="#3ea36a"/><circle cx="16" cy="9" r="2" fill="#ffb938"/></svg>',
+  ppt:'<svg viewBox="0 0 24 24"><path d="M5 2h9l5 5v15H5z" fill="#fff" stroke="#9aa6b4"/><path d="M14 2v5h5" fill="#dfe6ee"/><circle cx="11.5" cy="14.5" r="4" fill="#e8743b"/><path d="M11.5 14.5V10.5a4 4 0 0 1 4 4z" fill="#ffd0b8"/></svg>',
+  video:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="#4a4f68"/><path d="M10 9l5 3-5 3z" fill="#fff"/></svg>',
+  audio:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="#7a5cd1"/><path d="M10 16V8l6-1.5V14" stroke="#fff" stroke-width="1.6" fill="none"/><circle cx="8.8" cy="16" r="1.8" fill="#fff"/><circle cx="14.8" cy="14" r="1.8" fill="#fff"/></svg>',
+  pdf:'<svg viewBox="0 0 24 24"><path d="M5 2h9l5 5v15H5z" fill="#fff" stroke="#9aa6b4"/><rect x="6.5" y="12" width="11" height="6" rx="1" fill="#d6392f"/></svg>',
+  zip:'<svg viewBox="0 0 24 24"><path d="M5 2h9l5 5v15H5z" fill="#fff" stroke="#9aa6b4"/><path d="M11 3v13M13 5v2M11 7v2M13 9v2M11 11v2M13 13v2" stroke="#e0a421" stroke-width="1.6"/></svg>',
+  exe:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" fill="#fff" stroke="#8fa0b3"/><rect x="3" y="4" width="18" height="4" rx="2" fill="#4a90e2"/><rect x="6" y="11" width="12" height="6" fill="#dbe7f5"/></svg>',
+  taskmgr:'<svg viewBox="0 0 24 24"><defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2fb6e8"/><stop offset="1" stop-color="#0a5fd0"/></linearGradient></defs><rect x="2" y="3" width="20" height="18" rx="3.5" fill="url(#tg)"/><path d="M4.5 13.2h3l2-5.2 3 9 2.4-6 1.4 2.2h3.2" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  devmgr:'<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="#6a7b90"/><rect x="9" y="9" width="6" height="6" fill="#c7d3e0"/><path d="M9 3v3M12 3v3M15 3v3M9 18v3M12 18v3M15 18v3M3 9h3M3 12h3M3 15h3M18 9h3M18 12h3M18 15h3" stroke="#6a7b90" stroke-width="1.5"/></svg>',
+  settings:'<svg viewBox="0 0 24 24"><defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9db0c4"/><stop offset="1" stop-color="#4f647a"/></linearGradient></defs><circle cx="12" cy="12" r="7.7" fill="none" stroke="url(#sg)" stroke-width="3.6" stroke-dasharray="3.2 2.77"/><circle cx="12" cy="12" r="6.4" fill="url(#sg)"/><circle cx="12" cy="12" r="2.9" fill="#fff"/></svg>',
+  chip:'<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="#5a6c82"/><rect x="9" y="9" width="6" height="6" fill="#b9c8d9"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3" stroke="#5a6c82" stroke-width="1.5"/></svg>',
+  disk:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" fill="#98a6b6"/><circle cx="8" cy="12" r="3" fill="#dfe6ee"/><circle cx="8" cy="12" r="1" fill="#6b7a8c"/></svg>',
+  monitor:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5" fill="#4a7fc4"/><path d="M9 20h6M12 16v4" stroke="#6b7a8c" stroke-width="2" stroke-linecap="round"/></svg>',
+  kbd:'<svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2" fill="#8a97a8"/><path d="M5 10h2M9 10h2M13 10h2M17 10h2M5 13.5h2M9 13.5h6M17 13.5h2" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  mouse:'<svg viewBox="0 0 24 24"><rect x="6.5" y="3" width="11" height="18" rx="5.5" fill="#8a97a8"/><path d="M12 3v7M6.5 10h11" stroke="#fff" stroke-width="1.3"/></svg>',
+  net:'<svg viewBox="0 0 24 24"><rect x="3" y="14" width="18" height="6" rx="1.5" fill="#6a89b0"/><path d="M12 14V8M7 8h10M7 8V5M17 8V5M12 8V5" stroke="#6a89b0" stroke-width="1.6"/></svg>',
+  sound:'<svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="#7a8aa0"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" stroke="#7a8aa0" stroke-width="1.6" fill="none"/></svg>',
+  bat:'<svg viewBox="0 0 24 24"><rect x="2.5" y="8" width="16" height="9" rx="2" fill="none" stroke="#6b7a8c" stroke-width="1.6"/><rect x="4.5" y="10" width="10" height="5" fill="#4cae4f"/><path d="M21 11v3" stroke="#6b7a8c" stroke-width="2"/></svg>',
+  bt:'<svg viewBox="0 0 24 24"><path d="M7 7l10 10-5 4V3l5 4L7 17" fill="none" stroke="#2a74d6" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  usb:'<svg viewBox="0 0 24 24"><path d="M12 3v15M12 18a2 2 0 1 0 .01 0M12 8l4 2v3M12 11l-4-2v-2" fill="none" stroke="#6b7a8c" stroke-width="1.6"/></svg>',
+  cam:'<svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="2" fill="#6b7a8c"/><circle cx="12" cy="13" r="3.5" fill="#dfe6ee"/><circle cx="12" cy="13" r="1.5" fill="#2d3a4a"/></svg>'
+};
+const ico=(n,s=20)=>n==='chrome'?`<span class="i chrome" style="--s:${s}px"></span>`:`<span class="i" style="--s:${s}px">${ICON[n]||ICON.exe}</span>`;
+const G={
+  menu:'<path d="M3 5h18M3 12h18M3 19h18"/>', search:'<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/>',
+  chevR:'<path d="M9 5l7 7-7 7"/>', chevD:'<path d="M5 9l7 7 7-7"/>', back:'<path d="M19 12H5M11 6l-6 6 6 6"/>', up:'<path d="M12 19V5M6 11l6-6 6 6"/>',
+  close:'<path d="M5 5l14 14M19 5L5 19"/>', min:'<path d="M5 12h14"/>', max:'<rect x="5" y="5" width="14" height="14" rx="1"/>',
+  proc:'<rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M8 9h8M8 12h8M8 15h5"/>',
+  perf:'<rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M6.5 14.5l3-4 3 3 2.5-5 2.5 3.5"/>', hist:'<path d="M4.5 12a7.5 7.5 0 1 0 2.3-5.4M4 4v4h4M12 8v4.2l2.8 1.8"/>',
+  start:'<path d="M4.5 17a7.5 7.5 0 1 1 15 0"/><path d="M12 17l3.6-5.4"/><circle cx="12" cy="17" r="1.3"/><path d="M5.5 11l1.2.7M12 6.8V8.4M18.5 11l-1.2.7"/>',
+  users:'<circle cx="9" cy="8.5" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5.8a3 3 0 0 1 0 5.4M17.5 14a6 6 0 0 1 3.5 6"/>', det:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.7" cy="6" r="1"/><circle cx="4.7" cy="12" r="1"/><circle cx="4.7" cy="18" r="1"/>',
+  svc:'<path d="M10 4a2 2 0 1 1 4 0v2h4v4h-2a2 2 0 1 0 0 4h2v4h-4v-2a2 2 0 1 0-4 0v2H6v-4h2a2 2 0 1 0 0-4H6V6h4z"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>'};
+const gl=(n,s=16)=>`<svg class="g" viewBox="0 0 24 24" style="width:${s}px;height:${s}px">${G[n]}</svg>`;
+
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2600);}
+const denied=()=>toast('У цій імітації це не працює — сьогодні лише дивимося.');
+const inactive=()=>toast('Ця частина в імітації не активна.');
+
+function modal({title,html,buttons=[{t:'Закрити',pri:true}]}){
+  const o=el('div','ovl'),d=el('div','dlg');
+  d.innerHTML=`<header>${title}</header><div class="db">${html}</div><footer></footer>`;
+  const close=()=>o.remove();
+  buttons.forEach(b=>{const x=el('button','btn'+(b.pri?' pri':''),b.t);x.onclick=()=>{close();b.fn&&b.fn();};$('footer',d).appendChild(x);});
+  o.appendChild(d);o.addEventListener('pointerdown',e=>{if(e.target===o)close();});
+  $('#modals').appendChild(o);return {close,d};
+}
+
+/* торкання: одинарне / подвійне; довге утримання */
+function tapper(node,{tap,dbl}){
+  let last=0;
+  node.addEventListener('click',e=>{
+    const t=Date.now();
+    if(t-last<450){last=0;dbl&&dbl(e);} else {last=t;tap&&tap(e);}
+  });
+}
+function longPress(node,fn,ms=520){
+  let timer,fired=false,sx=0,sy=0;
+  const trigger=e=>{clearTimeout(timer);if(fired)return;fired=true;fn(e);};
+  node.addEventListener('pointerdown',e=>{fired=false;sx=e.clientX;sy=e.clientY;clearTimeout(timer);timer=setTimeout(()=>trigger(e),ms);});
+  ['pointerup','pointercancel','pointerleave'].forEach(n=>node.addEventListener(n,()=>clearTimeout(timer)));
+  node.addEventListener('pointermove',e=>{if(Math.hypot(e.clientX-sx,e.clientY-sy)>10)clearTimeout(timer);});
+  node.addEventListener('contextmenu',e=>{e.preventDefault();trigger(e);});
+  node.addEventListener('click',e=>{if(fired){e.stopImmediatePropagation();e.preventDefault();fired=false;}},true);
+}
+
+/* =====================================================================
+   Модель «живих» даних
+   ===================================================================== */
+const RAM=PC.ram;
+const P=PC.procs.map(p=>({...p}));
+(function init(){
+  const others=P.filter(p=>!p.auto);
+  P.filter(p=>p.auto).forEach(p=>{
+    p.mem=Math.round((RAM.usedMB-others.reduce((s,x)=>s+x.mem,0))*10)/10;
+    p.cpu=Math.round((PC.cpu.target-others.reduce((s,x)=>s+x.cpu,0))*10)/10;
+  });
+  P.forEach(p=>{p.cpu0=p.cpu;p.mem0=p.mem;p.disk0=p.disk;p.net0=p.net;p.gpu0=p.gpu;});
+  const ch=P.find(p=>p.kids);
+  if(ch){
+    const w=PC.tabs.map((_,i)=>40+(i*7)%35), sw=w.reduce((a,b)=>a+b,0), mainMem=150, mainCpu=2;
+    ch.kids=PC.tabs.map((t,i)=>({id:'tab'+i,name:'Вкладка: '+t,grp:'kid',pid:4200+i*8,
+      cpu0:(ch.cpu0-mainCpu)*w[i]/sw,mem0:(ch.mem0-mainMem)*w[i]/sw,disk0:0,net0:ch.net0*w[i]/sw,gpu0:ch.gpu0*w[i]/sw}));
+    ch.kids.forEach(k=>{k.cpu=k.cpu0;k.mem=k.mem0;k.disk=0;k.net=k.net0;k.gpu=k.gpu0;});
+  }
+})();
+
+const M={cpu:0,mem:0,memPct:0,disk:0,net:0,gpu:0,speed:PC.cpu.boost,hCpu:[],hMem:[],hDisk:[],hNet:[],hGpu:[],procs:0,threads:0,handles:0,start:Date.now()-((3*3600+41*60)*1000)};
+function tick(){
+  P.forEach(p=>{
+    p.cpu=p.cpu0*(1+rnd(-.035,.035));
+    p.mem=p.mem0+rnd(-1,1)*(p.mem0>300?1.6:.25);
+    p.disk=Math.max(0,p.disk0*(1+rnd(-.6,.9)));
+    p.net=Math.max(0,p.net0*(1+rnd(-.5,.5)));
+    p.gpu=Math.max(0,p.gpu0*(1+rnd(-.1,.1)));
+    if(p.kids){const fc=p.cpu/p.cpu0,fm=p.mem/p.mem0;p.kids.forEach(k=>{k.cpu=k.cpu0*fc;k.mem=k.mem0*fm;k.net=k.net0*(p.net/(p.net0||1));k.gpu=k.gpu0*(p.gpu/(p.gpu0||1));});}
+  });
+  M.cpu=clamp(P.reduce((s,p)=>s+p.cpu,0),0,100);
+  M.mem=P.reduce((s,p)=>s+p.mem,0);
+  M.memPct=M.mem/RAM.usableMB*100;
+  M.disk=clamp((PC.disk.activity||15)+rnd(-4,5),0,100);
+  M.net=P.reduce((s,p)=>s+p.net,0);
+  M.gpu=clamp(P.reduce((s,p)=>s+p.gpu,0)*0.45,0,100);
+  M.speed=PC.cpu.boost+rnd(-.04,.06);
+  M.procs=142+Math.round(rnd(-1,1));M.threads=1983+Math.round(rnd(-6,6));M.handles=61250+Math.round(rnd(-40,40));
+  const push=(a,v)=>{a.push(v);if(a.length>60)a.shift();};
+  push(M.hCpu,M.cpu);push(M.hMem,M.memPct);push(M.hDisk,M.disk);push(M.hNet,clamp(M.net*12,0,100));push(M.hGpu,M.gpu);
+}
+for(let i=0;i<60;i++)tick();
+
+/* =====================================================================
+   Таблиця (спільна для диспетчера завдань)
+   ===================================================================== */
+function makeTable({cols,groups,sort,expand=false,onTap}){
+  const S={key:sort.key,dir:sort.dir,open:new Set(),sel:null,map:new Map()};
+  const wrap=el('div','tblwrap');
+  const val=(c,r)=>c.val?c.val(r):r[c.k];
+  function sorted(rows){
+    const c=cols.find(x=>x.k===S.key);if(!c)return rows;
+    return [...rows].sort((a,b)=>{const x=val(c,a),y=val(c,b);
+      return (typeof x==='string'?x.localeCompare(y,'uk'):(x-y))*S.dir;});
+  }
+  function render(){
+    S.map.clear();
+    const heads=cols.map(c=>`<th class="sortable${c.left?' l':''}" data-k="${c.k}">${c.head?`<span class="hv"></span>`:''}<span class="hl">${c.label}${S.key===c.k?(S.dir>0?' ▲':' ▼'):''}</span></th>`).join('');
+    let body='';
+    groups().forEach(g=>{
+      if(g.title)body+=`<tr class="grp"><td colspan="${cols.length}">${g.title} (${g.rows.length})</td></tr>`;
+      sorted(g.rows).forEach(r=>{
+        const kids=!!(r.kids&&expand);
+        body+=rowHtml(r,0,kids);
+        if(kids&&S.open.has(r.id))sorted(r.kids).forEach(k=>body+=rowHtml(k,1,false));
+      });
+    });
+    wrap.innerHTML=`<table class="tbl"><thead><tr>${heads}</tr></thead><tbody>${body}</tbody></table>`;
+    $$('th',wrap).forEach(th=>{th._c=cols.find(x=>x.k===th.dataset.k);});
+    paintHeads();
+  }
+  function rowHtml(r,lvl,hasKids){
+    S.map.set(r.id,r);
+    const open=S.open.has(r.id);
+    const cells=cols.map((c,i)=>{
+      const st=c.style?c.style(r):'';
+      if(i===0)return `<td data-k="${c.k}"><span class="nm">${hasKids?`<span class="chev">${gl(open?'chevD':'chevR',12)}</span>`:'<span class="chev"></span>'}${c.cell(r)}</span></td>`;
+      return `<td data-k="${c.k}" class="${c.left?'l':''}" style="${st}">${c.cell(r)}</td>`;
+    }).join('');
+    return `<tr data-id="${r.id}" class="${lvl?'kid':''} ${S.sel===r.id?'sel':''}">${cells}</tr>`;
+  }
+  function paintHeads(){
+    $$('th',wrap).forEach(th=>{const c=th._c;if(c&&c.head){$('.hv',th).textContent=c.head();th.style.background=c.headStyle?c.headStyle():'';}});
+  }
+  function update(){
+    $$('tr[data-id]',wrap).forEach(tr=>{
+      const r=S.map.get(tr.dataset.id);if(!r)return;
+      cols.forEach((c,i)=>{if(i===0)return;const td=tr.children[i];td.innerHTML=c.cell(r);td.style.cssText=c.style?c.style(r):'';});
+    });
+    paintHeads();
+  }
+  wrap.addEventListener('click',e=>{
+    const th=e.target.closest('th.sortable');
+    if(th){const k=th.dataset.k;if(S.key===k)S.dir*=-1;else{S.key=k;S.dir=(th._c&&th._c.alpha)?1:-1;}render();return;}
+    const tr=e.target.closest('tr[data-id]');
+    if(tr){const id=tr.dataset.id;S.sel=id;const r=S.map.get(id);
+      if(expand&&r&&r.kids){S.open.has(id)?S.open.delete(id):S.open.add(id);render();}
+      else{$$('tr.sel',wrap).forEach(x=>x.classList.remove('sel'));tr.classList.add('sel');}
+      onTap&&onTap(r);}
+  });
+  render();
+  return {el:wrap,render,update};
+}
+
+/* =====================================================================
+   Додаток: Диспетчер завдань
+   ===================================================================== */
+const RAIL=[['proc','Процеси'],['perf','Продуктивність'],['hist','Журнал програм'],['start','Автозавантаження програм'],['users','Користувачі'],['det','Відомості'],['svc','Служби']];
+function buildTM(body,w){
+  const root=el('div','cq');
+  root.innerHTML=`<div class="tm"><nav class="tm-rail"></nav><div class="tm-pg"></div></div>`;
+  body.appendChild(root);
+  const rail=$('.tm-rail',root),pg=$('.tm-pg',root);
+  let page='proc',cur=null,perfSel='cpu';
+  const pages={proc:pProc,perf:pPerf,hist:pHist,start:pStart,users:pUsers,det:pDet,svc:pSvc};
+
+  function drawRail(){
+    rail.innerHTML='';
+    const ex=rail.classList.contains('ex');
+    const mk=(key,icon,text,on,fn)=>{const b=el('button',on?'on':'',`<span style="width:20px;display:grid;place-items:center;flex:none">${gl(icon,18)}</span><span>${ex?text:''}</span>`);b.onclick=fn;b.setAttribute('aria-label',text||'Меню');rail.appendChild(b);};
+    mk('m','menu','',false,()=>{rail.classList.toggle('ex');drawRail();});
+    RAIL.forEach(([k,t])=>mk(k,k,t,k===page,()=>{page=k;rail.classList.remove('ex');drawRail();show();}));
+    rail.appendChild(el('div','sp'));
+    mk('s','gear','Налаштування',false,()=>toast('Налаштування диспетчера завдань в імітації не активні.'));
+  }
+  function show(){
+    pg.innerHTML='';cur=pages[page]();pg.appendChild(cur.el);
+    w.update=()=>cur&&cur.update&&cur.update();
+  }
+  function head(title,btns=[]){
+    const h=el('div','tmhd',`<h2>${title}</h2>`);
+    btns.forEach(([t,fn])=>{const b=el('button','btn',t);b.onclick=fn;h.appendChild(b);});return h;
+  }
+  const wrapPage=(h,content,upd)=>{const d=el('div','tm-bd');d.append(h,content.el||content);return {el:d,update:upd||(()=>content.update&&content.update())};};
+
+  /* --- Процеси --- */
+  function pProc(){
+    const T=makeTable({
+      expand:true,sort:{key:'name',dir:1},
+      cols:[
+        {k:'name',label:'Ім\'я',cell:r=>r.name,val:r=>r.name,alpha:true},
+        {k:'cpu',label:'ЦП',head:()=>Math.round(M.cpu)+'%',headStyle:()=>heat(M.cpu),cell:r=>f1(r.cpu)+NB+'%',style:r=>'background:'+heat(r.cpu)},
+        {k:'mem',label:'Пам\'ять',head:()=>Math.round(M.memPct)+'%',headStyle:()=>heat(M.memPct),cell:r=>mbText(r.mem),style:r=>'background:'+heat(r.mem/RAM.usableMB*100)},
+        {k:'disk',label:'Диск',head:()=>Math.round(M.disk)+'%',headStyle:()=>heat(M.disk),cell:r=>f1(r.disk)+NB+'МБ/с',style:r=>'background:'+heat(r.disk*8)},
+        {k:'net',label:'Мережа',head:()=>Math.round(M.net)+'%',headStyle:()=>heat(M.net),cell:r=>f1(r.net)+NB+'Мбіт/с',style:r=>'background:'+heat(r.net*10)},
+        {k:'gpu',label:'ГП',head:()=>Math.round(M.gpu)+'%',headStyle:()=>heat(M.gpu),cell:r=>f1(r.gpu)+NB+'%',style:r=>'background:'+heat(r.gpu)}
+      ],
+      groups:()=>[{title:'Програми',rows:P.filter(p=>p.grp==='app')},{title:'Фонові процеси',rows:P.filter(p=>p.grp==='bg')}]
+    });
+    return wrapPage(head('Процеси',[['Запустити нове завдання',denied],['Завершити завдання',denied]]),T);
+  }
+
+  /* --- Продуктивність --- */
+  const uptime=()=>{const s=Math.floor((Date.now()-M.start)/1000);const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),x=s%60;return `${d}:${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`;};
+  function pPerf(){
+    const dsum=()=>P.reduce((s,p)=>s+p.disk,0);
+    const defs=[
+      {k:'cpu',t:'ЦП',color:'#1b7bc7',h:()=>M.hCpu,sub:()=>`${Math.round(M.cpu)}%${NB}${f2(M.speed)}${NB}ГГц`,name:PC.cpu.name,
+        lab:'Використання ЦП за 60 секунд, %',stats:()=>[
+          [['Використання',Math.round(M.cpu)+'%'],['Швидкість',f2(M.speed)+NB+'ГГц'],['Процеси',grp(M.procs)],['Потоки',grp(M.threads)],['Дескриптори',grp(M.handles)],['Час роботи',uptime()]],
+          [['Базова швидкість:',f2(PC.cpu.base)+NB+'ГГц'],['Сокети:',PC.cpu.sockets],['Ядра:',PC.cpu.cores],['Логічні процесори:',PC.cpu.threads],['Віртуалізація:','Вимкнено'],['Кеш L1:',PC.cpu.l1],['Кеш L2:',PC.cpu.l2],['Кеш L3:',PC.cpu.l3]]]},
+      {k:'mem',t:'Пам\'ять',color:'#8e44ad',h:()=>M.hMem,sub:()=>`${f1(M.mem/1024)}/${f1(RAM.usableMB/1024)}${NB}ГБ (${Math.round(M.memPct)}%)`,name:RAM.installed,
+        lab:'Використання пам\'яті, %',stats:()=>[
+          [['Використовується',f1(M.mem/1024)+NB+'ГБ'],['Доступно',f2((RAM.usableMB-M.mem)/1024)+NB+'ГБ'],['Встановлено',RAM.installed],['Кеш','0,3'+NB+'ГБ'],['Закріплений пул','210'+NB+'МБ']],
+          [['Швидкість:',RAM.speed],['Використані гнізда:',RAM.slots],['Форм-фактор:',RAM.form],['Зарезервовано апаратурою:',(RAM.totalMB-RAM.usableMB)+NB+'МБ']]]},
+      {k:'disk',t:'Диск 0 (C:)',color:'#3a9d4a',h:()=>M.hDisk,sub:()=>`${PC.disk.type}${NB}${Math.round(M.disk)}%`,name:PC.disk.model,
+        lab:'Активний час, %',stats:()=>[
+          [['Активний час',Math.round(M.disk)+'%'],['Середній час відповіді',f1(rnd(3,6))+NB+'мс'],['Швидкість читання',f1(dsum()*.4)+NB+'МБ/с'],['Швидкість запису',f1(dsum()*.6)+NB+'МБ/с']],
+          [['Ємність:',PC.disk.totalGB+NB+'ГБ'],['Відформатовано:',PC.disk.totalGB+NB+'ГБ'],['Вільно:',f1(PC.disk.freeGB)+NB+'ГБ'],['Системний диск:','Так'],['Файл підкачки:','Так'],['Тип:',PC.disk.type]]]},
+      {k:'net',t:PC.net.label,color:'#d9772b',h:()=>M.hNet,sub:()=>`Н:${NB}${f1(M.net*.15)}${NB}П:${NB}${f1(M.net*.85)}${NB}Мбіт/с`,name:PC.net.ssid,
+        lab:'Пропускна здатність, Мбіт/с',stats:()=>[
+          [['Надсилання',f1(M.net*.15)+NB+'Мбіт/с'],['Отримання',f1(M.net*.85)+NB+'Мбіт/с']],
+          [['Ім\'я мережі:',PC.net.ssid],['Тип:',PC.net.type],['IPv4-адреса:',PC.net.ip]]]},
+      {k:'gpu',t:'ГП 0',color:'#1b7bc7',h:()=>M.hGpu,sub:()=>`${PC.gpu.name.replace('Intel(R) ','')}${NB}${Math.round(M.gpu)}%`,name:PC.gpu.name,
+        lab:'Використання ГП, %',stats:()=>[
+          [['Використання',Math.round(M.gpu)+'%'],[PC.gpu.memLabel,PC.gpu.memVal]],
+          [['Версія драйвера:',PC.gpu.driver],['Дата розробки:',PC.gpu.driverDate]]]}
+    ];
+    const root=el('div','perf'),list=el('div','pl'),det=el('div','pd');root.append(list,det);
+    defs.forEach(d=>{
+      const it=el('div','pli'+(d.k===perfSel?' on':''),`<canvas width="124" height="84"></canvas><div><b>${d.t}</b><small data-s></small></div>`);
+      it.onclick=()=>{perfSel=d.k;$$('.pli',list).forEach(x=>x.classList.remove('on'));it.classList.add('on');buildDet();upd();};
+      d.mini=$('canvas',it);d.sm=$('[data-s]',it);list.appendChild(it);
+    });
+    let big,statsEl;
+    function buildDet(){
+      const d=defs.find(x=>x.k===perfSel);
+      det.innerHTML=`<h3>${d.t}</h3><div class="sub">${d.name}</div><canvas class="big" width="600" height="200"></canvas><div class="lbl"><span>${d.lab}</span><span>60 секунд → 0</span></div><div class="stg"><div class="sts"></div><div class="sts"></div></div>`;
+      big=$('canvas.big',det);statsEl=$$('.sts',det);
+    }
+    function chart(cv,data,color,thick){
+      const c=cv.getContext('2d'),W=cv.width,H=cv.height;c.clearRect(0,0,W,H);
+      c.strokeStyle='#e6edf5';c.lineWidth=1;
+      for(let i=1;i<10;i++){c.beginPath();c.moveTo(0,H*i/10);c.lineTo(W,H*i/10);c.stroke();}
+      const n=data.length,pts=data.map((v,i)=>[i/(n-1)*W,H-clamp(v,0,100)/100*(H-3)-1.5]);
+      c.beginPath();c.moveTo(0,H);pts.forEach(p=>c.lineTo(p[0],p[1]));c.lineTo(W,H);c.closePath();c.fillStyle=color+'30';c.fill();
+      c.beginPath();pts.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.strokeStyle=color;c.lineWidth=thick;c.stroke();
+    }
+    function upd(){
+      defs.forEach(d=>{chart(d.mini,d.h(),d.color,2);d.sm.textContent=d.sub();});
+      const d=defs.find(x=>x.k===perfSel);chart(big,d.h(),d.color,3);
+      const [a,b]=d.stats();
+      const html=arr=>arr.map(([k,v])=>`<div><span>${k}</span><span>${v}</span></div>`).join('');
+      statsEl[0].innerHTML=html(a);statsEl[1].innerHTML=html(b);
+    }
+    buildDet();upd();
+    const d=el('div','tm-bd');d.append(head('Продуктивність'),root);
+    return {el:d,update:upd};
+  }
+
+  /* --- Журнал програм --- */
+  function pHist(){
+    const rows=PC.history.map((r,i)=>({id:'h'+i,name:r[0],cpu:r[1],net:r[2],met:r[3],tile:'0'+NB+'КБ'}));
+    const T=makeTable({sort:{key:'name',dir:1},cols:[
+      {k:'name',label:'Ім\'я',alpha:true,cell:r=>r.name,val:r=>r.name},{k:'cpu',label:'Час ЦП',cell:r=>r.cpu,val:r=>r.cpu},{k:'net',label:'Мережа',cell:r=>r.net,val:r=>r.net},{k:'met',label:'Лімітна мережа',cell:r=>r.met,val:r=>r.met},{k:'tile',label:'Оновлення плиток',cell:r=>r.tile,val:r=>r.tile}
+    ],groups:()=>[{rows}]});
+    return wrapPage(head('Журнал програм'),T);
+  }
+  /* --- Автозавантаження --- */
+  function pStart(){
+    const imp={'Високий':3,'Середній':2,'Низький':1,'Немає':0};
+    const rows=PC.startup.map((r,i)=>({id:'s'+i,name:r[0],pub:r[1],st:r[2],imp:r[3]}));
+    const T=makeTable({sort:{key:'imp',dir:-1},cols:[
+      {k:'name',label:'Ім\'я',alpha:true,cell:r=>r.name,val:r=>r.name},{left:true,k:'pub',label:'Видавець',cell:r=>r.pub,val:r=>r.pub},
+      {left:true,k:'st',label:'Стан',cell:r=>r.st,val:r=>r.st},
+      {left:true,k:'imp',label:'Вплив на запуск',cell:r=>r.imp,val:r=>imp[r.imp],style:r=>r.imp==='Високий'?'background:#fbd0c4':r.imp==='Середній'?'background:#fde9b5':''}
+    ],groups:()=>[{rows}]});
+    return wrapPage(head('Автозавантаження програм',[['Вимкнути',denied]]),T);
+  }
+  /* --- Користувачі --- */
+  function pUsers(){
+    const apps=P.filter(p=>p.grp==='app');
+    const user={id:'u1',name:`${PC.owner} (${apps.length+3})`,get cpu(){return M.cpu},get mem(){return M.mem},get disk(){return M.disk},get net(){return M.net},kids:apps};
+    const T=makeTable({expand:true,sort:{key:'name',dir:1},cols:[
+      {k:'name',label:'Користувач',alpha:true,cell:r=>r.name,val:r=>r.name},
+      {k:'cpu',label:'ЦП',cell:r=>f1(r.cpu)+NB+'%',style:r=>'background:'+heat(r.cpu)},
+      {k:'mem',label:'Пам\'ять',cell:r=>mbText(r.mem),style:r=>'background:'+heat(r.mem/RAM.usableMB*100)},
+      {k:'disk',label:'Диск',cell:r=>f1(r.disk)+NB+'МБ/с'},{k:'net',label:'Мережа',cell:r=>f1(r.net)+NB+'Мбіт/с'}
+    ],groups:()=>[{rows:[user]}]});
+    return wrapPage(head('Користувачі',[['Від\'єднати',denied]]),T);
+  }
+  /* --- Відомості --- */
+  function pDet(){
+    const extra=[['System Idle Process',0,'0'],['Registry',92,'48'],['smss.exe',372,'68'],['csrss.exe',520,'2 600'],['wininit.exe',612,'1 400'],['services.exe',748,'6 100'],['lsass.exe',768,'12 300'],['svchost.exe',904,'18 400'],['dwm.exe',1088,'62 800'],['svchost.exe',1204,'14 100'],['ctfmon.exe',3320,'7 200'],['SearchHost.exe',4640,'38 500']];
+    const ex=extra.map((r,i)=>({id:'x'+i,name:r[0],pid:r[1],cpu:0,memKB:+r[2].replace(/\s/g,''),desc:'Системний процес'}));
+    const live=P.map(p=>({id:'d'+p.id,name:p.exe,get cpu(){return p.cpu},get memKB(){return p.mem*1024},pid:p.pid,desc:p.desc}));
+    const rows=[...ex,...live];
+    const T=makeTable({sort:{key:'pid',dir:1},cols:[
+      {k:'name',label:'Ім\'я',alpha:true,cell:r=>r.name,val:r=>r.name},{k:'pid',label:'Ідентифікатор процесу',cell:r=>r.pid,val:r=>r.pid},
+      {left:true,k:'st',label:'Стан',cell:r=>'Виконується',val:r=>0},{left:true,k:'user',label:'Користувач',cell:r=>r.pid<400?'СИСТЕМА':PC.owner,val:r=>r.pid<400?'СИСТЕМА':PC.owner},
+      {k:'cpu',label:'ЦП',cell:r=>Math.round(r.cpu)+NB+'%',val:r=>r.cpu},{k:'memKB',label:'Пам\'ять (активний закритий пул)',cell:r=>grp(r.memKB)+NB+'КБ',val:r=>r.memKB},{left:true,k:'desc',label:'Опис',cell:r=>r.desc,val:r=>r.desc}
+    ],groups:()=>[{rows}]});
+    return wrapPage(head('Відомості'),T);
+  }
+  /* --- Служби --- */
+  function pSvc(){
+    const rows=PC.services.map((r,i)=>({id:'v'+i,name:r[0],pid:r[1]===''?0:r[1],desc:r[2],st:r[3],grp2:r[4]}));
+    const T=makeTable({sort:{key:'name',dir:1},cols:[
+      {k:'name',label:'Ім\'я',alpha:true,cell:r=>r.name,val:r=>r.name},{k:'pid',label:'Ідентифікатор процесу',cell:r=>r.pid||'',val:r=>r.pid},
+      {left:true,k:'desc',label:'Опис',cell:r=>r.desc,val:r=>r.desc},{left:true,k:'st',label:'Стан',cell:r=>r.st,val:r=>r.st},{left:true,k:'grp2',label:'Група',cell:r=>r.grp2,val:r=>r.grp2}
+    ],groups:()=>[{rows}]});
+    return wrapPage(head('Служби',[['Відкрити служби',denied]]),T);
+  }
+
+  drawRail();show();
+}
+
+/* =====================================================================
+   Додаток: Провідник
+   ===================================================================== */
+const TYPE={folder:'Папка з файлами',doc:'Документ',img:'Файл JPG',ppt:'Презентація',video:'Відеофайл',exe:'Програма',pdf:'Документ PDF',zip:'Архів ZIP',audio:'Аудіофайл'};
+const LOCNAME={desktop:'Робочий стіл',documents:'Документи',downloads:'Завантаження',pictures:'Зображення',music:'Музика',videos:'Відео'};
+function locTitle(loc){
+  if(loc==='thispc')return ['Цей ПК'];
+  if(LOCNAME[loc])return ['Цей ПК',LOCNAME[loc]];
+  const [,...rest]=loc.split('/');return ['Цей ПК',PC.disk.label,...rest];
+}
+function buildExplorer(body,w,opts){
+  const root=el('div','cq');
+  root.innerHTML=`<div class="ex">
+    <div class="ex-top"><button class="nb hamb" data-a="ham" aria-label="Меню">${gl('menu',18)}</button><button class="nb" data-a="back" aria-label="Назад">${gl('back',18)}</button><button class="nb" data-a="up" aria-label="Вгору">${gl('up',18)}</button><div class="ex-addr"></div><div class="ex-srch">${gl('search',14)} Пошук</div></div>
+    <div class="ex-cmd"><span>＋ Створити</span><span>Вирізати</span><span>Копіювати</span><span>Видалити</span><span>⇅ Сортувати</span><span>☰ Вигляд</span></div>
+    <div class="ex-main"><nav class="ex-nav"></nav><div class="ex-view"></div></div>
+    <div class="ex-st"></div></div>`;
+  body.appendChild(root);
+  const addr=$('.ex-addr',root),nav=$('.ex-nav',root),view=$('.ex-view',root),stat=$('.ex-st',root),backB=$('[data-a=back]',root);
+  let loc=(opts&&opts.page)||'thispc',hist=[];
+  const free=PC.disk.freeGB,tot=PC.disk.totalGB,low=free/tot<0.1;
+
+  function go(l,push=true){if(push&&l!==loc)hist.push(loc);loc=l;nav.classList.remove('show');render();}
+  w.nav=l=>go(l);
+  function parent(l){if(l==='thispc')return null;if(LOCNAME[l]||l==='c')return 'thispc';return l.split('/').slice(0,-1).join('/')||'c';}
+
+  root.addEventListener('click',e=>{
+    const b=e.target.closest('[data-a]');if(!b)return;
+    const a=b.dataset.a;
+    if(a==='back'&&hist.length)go(hist.pop(),false);
+    if(a==='up'){const p=parent(loc);if(p)go(p);}
+    if(a==='ham')nav.classList.toggle('show');
+  });
+
+  function drawNav(){
+    const items=[['desktop','Робочий стіл'],['downloads','Завантаження'],['documents','Документи'],['pictures','Зображення'],['music','Музика'],['videos','Відео']];
+    nav.innerHTML=`<div class="nvh">Швидкий доступ</div>`+items.map(([k,t])=>`<div class="nvi ${loc===k?'on':''}" data-l="${k}">${ico('folder',18)}${t}</div>`).join('')+
+      `<div class="nvh">&nbsp;</div><div class="nvi ${loc==='thispc'?'on':''}" data-l="thispc">${ico('pc',18)}Цей ПК</div><div class="nvi sub ${loc==='c'?'on':''}" data-l="c">${ico('drive',18)}${PC.disk.label}</div>`;
+    $$('.nvi',nav).forEach(n=>n.onclick=()=>go(n.dataset.l));
+  }
+  function drawAddr(){
+    const t=locTitle(loc);
+    addr.innerHTML=ico(loc==='thispc'?'pc':'folder',16)+t.map(x=>`<span>${x}</span>`).join('<span style="color:#999">›</span>');
+    backB.disabled=!hist.length;
+  }
+  function selOnly(node,text){$$('.sel',view).forEach(x=>x.classList.remove('sel'));node.classList.add('sel');stat.textContent=text||'Вибрано 1 елемент';}
+  function driveTile(){
+    const pct=(tot-free)/tot*100;
+    const d=el('div','drive',`${ico('drive',42)}<div style="flex:1;min-width:0"><div class="dn">${PC.disk.label}</div><div class="dbar ${low?'low':''}"><div style="width:${pct}%"></div></div><small>${f1(free)}${NB}ГБ вільно з ${tot}${NB}ГБ</small></div>`);
+    tapper(d,{tap:()=>selOnly(d),dbl:()=>go('c')});
+    longPress(d,e=>showCtx(e.clientX,e.clientY,[['Відкрити',()=>go('c')],['Властивості',driveProps]]));
+    return d;
+  }
+  function driveProps(){
+    const gib=1073741824,tb=tot*gib,fb=Math.round(free*gib),ub=tb-fb,r=54,C=2*Math.PI*r,uf=ub/tb;
+    modal({title:`Властивості: ${PC.disk.label}`,html:`
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">${ico('drive',34)}<b>${PC.disk.label}</b></div>
+      <div class="prp"><span>Тип:</span><span>Локальний диск</span><span>Файлова система:</span><span>NTFS</span></div>
+      <div class="prp" style="grid-template-columns:auto 1fr;margin:6px 0"><span style="color:#222">Зайнято:</span><span>${grp(ub)}${NB}байт · ${f1(tot-free)}${NB}ГБ</span><span style="color:#222">Вільно:</span><span>${grp(fb)}${NB}байт · ${f1(free)}${NB}ГБ</span><span style="color:#222">Ємність:</span><span>${grp(tb)}${NB}байт · ${tot}${NB}ГБ</span></div>
+      <div style="display:grid;place-items:center;margin:10px 0"><svg width="140" height="140" viewBox="0 0 140 140"><circle cx="70" cy="70" r="${r}" fill="none" stroke="#e5e5e5" stroke-width="22"/><circle cx="70" cy="70" r="${r}" fill="none" stroke="${low?'#da2626':'#26a0da'}" stroke-width="22" stroke-dasharray="${C*uf} ${C}" transform="rotate(-90 70 70)"/></svg><div style="font-size:12px;color:#666">Диск C: ${Math.round(uf*100)}% зайнято</div></div>`,
+      buttons:[{t:'Очищення диска',fn:denied},{t:'Закрити',pri:true}]});
+  }
+  function render(){
+    drawNav();drawAddr();view.innerHTML='';
+    if(loc==='thispc'){
+      const folders=[['desktop','Робочий стіл'],['downloads','Завантаження'],['documents','Документи'],['music','Музика'],['pictures','Зображення'],['videos','Відео']];
+      view.appendChild(el('div','sec','Папки ('+folders.length+')'));
+      const tl=el('div','tiles');
+      folders.forEach(([k,t])=>{const x=el('div','tile',ico('folder',32)+`<span>${t}</span>`);tapper(x,{tap:()=>selOnly(x),dbl:()=>go(k)});tl.appendChild(x);});
+      view.appendChild(tl);
+      view.appendChild(el('div','sec','Пристрої та диски (1)'));
+      view.appendChild(driveTile());
+      stat.textContent='Елементів: '+(folders.length+1);
+      return;
+    }
+    const list=PC.fs[loc];
+    if(!list){view.appendChild(el('div','empty',loc.startsWith('c/')?'У цій імітації вміст папки не показується.':'Папка порожня.'));stat.textContent='Елементів: 0';return;}
+    const t=el('table','flist');
+    t.innerHTML=`<thead><tr><th>Назва</th><th class="c-date">Дата змінення</th><th class="c-type">Тип</th><th class="r">Розмір</th></tr></thead><tbody></tbody>`;
+    const tb=$('tbody',t);
+    list.forEach(([n,k,d,s])=>{
+      const tr=el('tr','frow',`<td>${ico(k,20)}<span>${n}</span></td><td class="c-date">${d}</td><td class="c-type">${TYPE[k]||'Файл'}</td><td class="r">${s==null?'':sizeText(s)}</td>`);
+      tapper(tr,{tap:()=>{$$('.sel',tb).forEach(x=>x.classList.remove('sel'));tr.classList.add('sel');stat.textContent='Вибрано 1 елемент'+(s!=null?`: ${sizeText(s)}`:'');},
+        dbl:()=>{if(k==='folder')go(loc==='c'?'c/'+n:loc+'/'+n);else toast('Цей файл в імітації не відкривається.');}});
+      tb.appendChild(tr);
+    });
+    view.appendChild(t);stat.textContent='Елементів: '+list.length;
+  }
+  render();
+}
+
+/* =====================================================================
+   Додаток: Диспетчер пристроїв
+   ===================================================================== */
+function buildDM(body,w){
+  const root=el('div','cq');root.innerHTML=`<div class="dm"><div class="dm-menu"><span>Файл</span><span>Дія</span><span>Вигляд</span><span>Довідка</span></div><div class="dm-tb"><span>◀</span><span>▶</span><span>▦</span><span>?</span><span>↻</span></div><div class="dm-tree"></div><div class="dm-st">Торкніться категорії, щоб розгорнути. Двічі торкніться пристрою — відкриються властивості.</div></div>`;
+  body.appendChild(root);
+  const tree=$('.dm-tree',root);const open=new Set(),sel={id:null};
+  function render(){
+    tree.innerHTML='';
+    tree.appendChild(el('div','tn',`<span class="chev">${gl('chevD',12)}</span>${ico('pc',18)}<b style="font-weight:600">${PC.device}</b>`));
+    const box=el('div','tkids');tree.appendChild(box);
+    PC.devices.forEach(([cat,ic,items],ci)=>{
+      const isOpen=open.has(ci);
+      const row=el('div','tn',`<span class="chev">${gl(isOpen?'chevD':'chevR',12)}</span>${ico(ic,18)}<span>${cat}</span>`);
+      row.onclick=()=>{isOpen?open.delete(ci):open.add(ci);render();};
+      box.appendChild(row);
+      if(isOpen){const kids=el('div','tkids');
+        items.forEach(([n,m],ii)=>{const id=ci+'.'+ii;const k=el('div','tn'+(sel.id===id?' sel':''),`<span class="chev"></span>${ico(ic,16)}<span>${n}</span>`);
+          tapper(k,{tap:()=>{sel.id=id;$$('.tn.sel',kids).forEach(x=>x.classList.remove('sel'));k.classList.add('sel');},dbl:()=>props(cat,ic,n,m)});kids.appendChild(k);});
+        box.appendChild(kids);}
+    });
+  }
+  function props(cat,ic,n,m){
+    modal({title:'Властивості: '+n,html:`<div style="display:flex;gap:12px;align-items:center">${ico(ic,36)}<b>${n}</b></div>
+      <div class="prp"><span>Тип пристрою:</span><span>${cat}</span><span>Виробник:</span><span>${m}</span><span>Розташування:</span><span>Системна плата</span></div>
+      <div class="statbox"><b>Стан пристрою</b><br>Пристрій працює нормально.</div>`,buttons:[{t:'Закрити',pri:true}]});
+  }
+  render();
+}
+
+/* =====================================================================
+   Додаток: Налаштування (Система → Про систему)
+   ===================================================================== */
+const SIC={'system': '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>', 'bluetooth': '<path d="M7 7l10 10-5 4V3l5 4L7 17"/>', 'network': '<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10.5 10.5 0 0 1 14 0M8.5 16a5.5 5.5 0 0 1 7 0"/><circle cx="12" cy="19.2" r=".9" fill="currentColor"/>', 'brush': '<path d="M12 3a9 9 0 1 0 0 18c1.6 0 2.1-1.1 1.5-2.3-.6-1.2.2-2.2 1.6-2.2H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.6" cy="11.2" r="1"/><circle cx="10" cy="7.2" r="1"/><circle cx="15" cy="7.2" r="1"/>', 'apps': '<rect x="4" y="4" width="6.5" height="6.5" rx="1.3"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.3"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.3"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.3"/>', 'person': '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', 'globe': '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.2 3 3.2 15 0 18M12 3c-3.2 3-3.2 15 0 18"/>', 'game': '<path d="M7 8h10a4 4 0 0 1 4 4.5l-.7 4a2.3 2.3 0 0 1-4 1L14 15h-4l-2.3 2.5a2.3 2.3 0 0 1-4-1l-.7-4A4 4 0 0 1 7 8z"/><path d="M8 10.5v3M6.5 12h3"/>', 'access': '<circle cx="12" cy="5" r="1.8"/><path d="M5 9l7 1.5L19 9M12 10.5V15l-3 5M12 15l3 5"/>', 'shield': '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2.2 2.2L15.5 10"/>', 'update': '<path d="M20 11a8 8 0 0 0-14-4.5L4 9M4 4v5h5M4 13a8 8 0 0 0 14 4.5L20 15M20 20v-5h-5"/>', 'sound': '<path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11"/>', 'bell': '<path d="M6 17v-6a6 6 0 0 1 12 0v6l2 2H4zM10 21h4"/>', 'moon': '<path d="M20 14a8 8 0 1 1-10-10 6.5 6.5 0 0 0 10 10z"/>', 'power': '<path d="M12 3v9M6.5 6.5a8 8 0 1 0 11 0"/>', 'storage': '<path d="M4 14l2.2-7h11.6L20 14M4 14v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4zM4 14h16"/><circle cx="16.8" cy="16.5" r=".9" fill="currentColor"/>', 'share': '<circle cx="6" cy="12" r="2.2"/><circle cx="17" cy="6" r="2.2"/><circle cx="17" cy="18" r="2.2"/><path d="M8 11l7-4M8 13l7 4"/>', 'multi': '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 5v14M3 12h9"/>', 'tool': '<path d="M15 4a4 4 0 0 0-3.5 5.8L4 17.3 6.7 20l7.5-7.5A4 4 0 0 0 20 9l-2.7 2.7-2.4-.6-.6-2.4L17 6A4 4 0 0 0 15 4z"/>', 'recover': '<path d="M4 12a8 8 0 1 0 3-6.2M4 4v4h4M12 8v4l3 2"/>', 'remote': '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M9.5 10.5L12 8l2.5 2.5"/>', 'clip': '<rect x="6" y="5" width="12" height="16" rx="2"/><path d="M9 5V3h6v2M9 11h6M9 15h6"/>', 'info': '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/>'};
+const sic=(n,c)=>`<span class="gi" style="color:${c}"><svg viewBox="0 0 24 24">${SIC[n]}</svg></span>`;
+const NAV=[['Система','system','#0067c0'],['Bluetooth і пристрої','bluetooth','#0078d4'],['Мережа й інтернет','network','#0078d4'],['Персоналізація','brush','#e08a2e'],['Програми','apps','#0067c0'],['Облікові записи','person','#2e9a5c'],['Час і мова','globe','#0078d4'],['Ігри','game','#5f6b7a'],['Спеціальні можливості','access','#0067c0'],['Конфіденційність і безпека','shield','#5f6b7a'],['Windows Update','update','#0078d4']];
+const SYS=[['Дисплей','Яскравість, нічне освітлення, профіль дисплея','system'],['Звук','Рівні гучності, виходи, входи','sound'],['Сповіщення','Сповіщення від програм і системи','bell'],['Фокусування','Сповіщення, автоматичні правила','moon'],['Живлення і батарея','Сон, використання батареї','power'],['Пам\'ять','Пам\'ять сховища, рекомендації з очищення','storage','memory'],['Поблизу','Спільний доступ до файлів','share'],['Багатозадачність','Прив\'язка вікон, робочі столи','multi'],['Усунення неполадок','Рекомендовані засоби, налаштування, історія','tool','trouble'],['Відновлення','Скидання, розширений запуск, назад','recover'],['Віддалений робочий стіл','Керування пристроєм з іншого пристрою','remote'],['Буфер обміну','Історія вирізання та копіювання','clip'],['Про систему','Характеристики пристрою, перейменування, специфікації Windows','info','about']];
+function buildSettings(body,w,opts){
+  const root=el('div','cq');
+  root.innerHTML=`<div class="st"><nav class="st-nav"></nav><main class="st-main"></main></div>`;
+  body.appendChild(root);
+  const nav=$('.st-nav',root),main=$('.st-main',root);
+  let page=(opts&&opts.page)||'system';
+  w.nav=p=>{page=p;render();};
+  function drawNav(){
+    nav.innerHTML=`<div class="st-user"><div class="avatar">${PC.owner[0]}</div><div><b>${PC.owner}</b><br><small style="color:#666">Локальний обліковий запис</small></div></div><div class="st-srch">Знайти налаштування</div>`;
+    NAV.forEach(([t,ic,c],i)=>{const n=el('div','sni'+(i===0?' on':''),sic(ic,c)+t);n.onclick=()=>{if(i===0){page='system';render();}else inactive();};nav.appendChild(n);});
+  }
+  const copy=()=>toast('Скопійовано (в імітації).');
+  function head(parts){return `<div class="st-h"><button class="st-ham" data-a="ham" aria-label="Меню">${gl('menu',18)}</button><h1>${parts.map((p,i)=>i<parts.length-1?`<span class="bc" data-go="${p[1]}">${p[0]}</span> › `:p[0]).join('')}</h1></div>`;}
+  function render(){
+    drawNav();nav.classList.remove('show');
+    if(page==='about')aboutPage();else if(page==='memory')memPage();else if(page==='trouble')trPage();else sysPage();
+    main.scrollTop=0;
+  }
+  main.addEventListener('click',e=>{
+    if(e.target.closest('[data-a=ham]'))nav.classList.toggle('show');
+    const g=e.target.closest('[data-go]');if(g){page=g.dataset.go;render();}
+  });
+  function sysPage(){
+    main.innerHTML=head([['Система']])+`
+      <div class="devcard">${ico('pc',56)}<div><h2>${PC.device}</h2><small>${PC.model}</small></div></div>
+      <div class="card"></div>`;
+    const card=$('.card',main);
+    SYS.forEach(([t,d,ic,go])=>{
+      const r=el('div','row link',`${sic(ic,go==='about'?'#0067c0':'#3b4a5a')}<div class="rt"><b>${t}</b><small>${d}</small></div>${gl('chevR',14)}`);
+      r.onclick=()=>{if(go){page=go;render();}else inactive();};card.appendChild(r);
+    });
+  }
+  function aboutPage(){
+    const kv=arr=>`<div class="kv">${arr.map(([k,v])=>`<div>${k}</div><div>${v}</div>`).join('')}</div>`;
+    main.innerHTML=head([['Система','system'],['Про систему']])+`
+      <div class="devcard">${ico('pc',56)}<div style="flex:1"><h2>${PC.device}</h2><small>${PC.model}</small></div><button class="btn cbtn" data-c>Перейменувати</button></div>
+      <div class="st-sec">Характеристики пристрою<button class="btn cbtn" data-c>Копіювати</button></div>
+      <div class="card">${kv([
+        ['Назва пристрою',PC.device],['Процесор',PC.cpu.name+`&nbsp;&nbsp;${f2(PC.cpu.base)} ГГц`],['Встановлена оперативна пам\'ять (ОЗП)',`${RAM.installed} (${f2(RAM.usableMB/1024)} ГБ доступно)`],
+        ['Код пристрою',PC.ids.device],['Код продукту',PC.ids.product],['Тип системи','64-розрядна операційна система, процесор на базі x64'],['Перо й сенсорне введення',PC.os.pen]])}</div>
+      <div class="card" style="margin-top:6px"><div class="row link" data-i><div class="rt"><b>Домен або робоча група</b></div>${gl('chevR',14)}</div><div class="row link" data-i><div class="rt"><b>Захист системи</b></div>${gl('chevR',14)}</div><div class="row link" data-i><div class="rt"><b>Додаткові налаштування системи</b></div>${gl('chevR',14)}</div></div>
+      <div class="st-sec">Характеристики Windows<button class="btn cbtn" data-c>Копіювати</button></div>
+      <div class="card">${kv([['Випуск',PC.os.edition],['Версія',PC.os.version],['Дата інсталяції',PC.os.installed],['Збірка ОС',PC.os.build],['Взаємодія','Windows Feature Experience Pack 1000.22700.1067.0']])}</div>`;
+    $$('[data-c]',main).forEach(b=>b.onclick=copy);$$('[data-i]',main).forEach(b=>b.onclick=inactive);
+  }
+  function memPage(){
+    const used=PC.disk.totalGB-PC.disk.freeGB,low=PC.disk.freeGB/PC.disk.totalGB<.1;
+    main.innerHTML=head([['Система','system'],['Пам\'ять']])+`
+      <div class="card"><div class="row" style="display:block"><div style="display:flex;justify-content:space-between;gap:10px"><b style="font-weight:600">${PC.disk.label}</b><span style="color:#666">${f1(used)} ГБ використано з ${PC.disk.totalGB} ГБ</span></div><div class="bar ${low?'red':''}"><i style="width:${used/PC.disk.totalGB*100}%"></i></div><small style="color:${low?'#c42b1c':'#666'}">${low?'Залишилось мало місця: вільно '+f1(PC.disk.freeGB)+' ГБ':'Вільно '+f1(PC.disk.freeGB)+' ГБ'}</small></div></div>
+      <div class="st-sec">Що займає місце</div><div class="card" data-bd></div>
+      <div class="st-sec">Керування пам'яттю</div><div class="card"><div class="row link" data-i><div class="rt"><b>Рекомендації з очищення</b><small>Тимчасові файли, великі та невикористовувані файли</small></div>${gl('chevR',14)}</div><div class="row link" data-i><div class="rt"><b>Контроль пам'яті</b><small>Автоматично звільняє місце на диску</small></div>${gl('chevR',14)}</div></div>`;
+    const c=$('[data-bd]',main);
+    PC.disk.breakdown.forEach(([n,g])=>c.appendChild(el('div','row',`<div class="rt"><b>${n}</b><div class="bar"><i style="width:${g/PC.disk.totalGB*100*2.2}%"></i></div></div><div class="rv" style="white-space:nowrap">${f1(g)} ГБ</div>`)));
+    $$('[data-i]',main).forEach(b=>b.onclick=inactive);
+  }
+  function trPage(){
+    const items=['Відтворення звуку','Підключення до інтернету','Мережний адаптер','Принтер','Windows Update','Живлення','Bluetooth','Клавіатура'];
+    main.innerHTML=head([['Система','system'],['Усунення неполадок','trouble'],['Інші засоби усунення неполадок']])+`<div class="card" data-l></div>`;
+    const c=$('[data-l]',main);
+    items.forEach(t=>{const r=el('div','row',`${sic('tool','#3b4a5a')}<div class="rt"><b>${t}</b></div><button class="btn">Запустити</button>`);
+      $('button',r).onclick=async()=>{const m=modal({title:'Усунення неполадок',html:`<div style="display:flex;gap:14px;align-items:center"><span class="spin"></span><div><b>${t}</b><br>Виявлення проблем…</div></div>`,buttons:[]});
+        await sleep(2200);$('.db',m.d).innerHTML=`<b>${t}</b><br><br>Проблем не виявлено. <span style="color:#666">(У цій імітації перевірка завжди завершується без змін.)</span>`;
+        const b=el('button','btn pri','Закрити');b.onclick=m.close;$('footer',m.d).appendChild(b);};
+      c.appendChild(r);});
+  }
+  render();
+}
+
+/* =====================================================================
+   Додаток: Chrome (заглушка з 32 вкладками)
+   ===================================================================== */
+function buildChrome(body,w){
+  body.innerHTML=`<div class="ch"><div class="ch-tabs"></div><div class="ch-bar"><span style="color:#777">←  →  ⟳</span><div class="ch-url">Початкова сторінка</div></div><div class="ch-pg"><div><h3>Це імітація браузера</h3><p>Тут відкрито <b>${PC.tabs.length} вкладки</b>. Кожна вкладка займає пам'ять — разом браузер «з'їдає» найбільше.</p><p>Перевір це в Диспетчері завдань.</p><button class="btn pri" id="gotm">Відкрити Диспетчер завдань</button></div></div></div>`;
+  const tabs=$('.ch-tabs',body);
+  PC.tabs.forEach((t,i)=>tabs.appendChild(el('div','ch-tab'+(i===0?' on':''),t)));
+  $('#gotm',body).onclick=()=>openApp('taskmgr');
+}
+
+/* =====================================================================
+   Вікна
+   ===================================================================== */
+const APPS={
+  explorer:{title:'Провідник',icon:'folder',build:buildExplorer,size:[820,520]},
+  taskmgr:{title:'Диспетчер завдань',icon:'taskmgr',build:buildTM,size:[860,560]},
+  devmgr:{title:'Диспетчер пристроїв',icon:'devmgr',build:buildDM,size:[680,520]},
+  settings:{title:'Налаштування',icon:'settings',build:buildSettings,size:[920,600]},
+  chrome:{title:'Google Chrome',icon:'chrome',build:buildChrome,size:[900,560]}
+};
+const wins=[];let zTop=10;
+const narrow=()=>innerWidth<760;
+function openApp(id,opts){
+  closeMenus();
+  const ex=wins.find(x=>x.app===id);
+  if(ex){ex.node.classList.remove('min');if(opts&&opts.page&&ex.nav)ex.nav(opts.page);focus(ex);return ex;}
+  const def=APPS[id],node=el('div','win'),w={app:id,node,def};
+  node.innerHTML=`<div class="titlebar">${ico(def.icon,16)}<div class="ttitle">${def.title}</div><div class="tbtns"><button class="minb" aria-label="Згорнути">${gl('min')}</button><button class="maxb" aria-label="Розгорнути">${gl('max')}</button><button class="close" aria-label="Закрити">${gl('close')}</button></div></div><div class="wbody"></div>`;
+  const aw=$('#windows'),W=Math.min(def.size[0],aw.clientWidth-20),H=Math.min(def.size[1],aw.clientHeight-20),n=wins.length;
+  Object.assign(node.style,{width:W+'px',height:H+'px',left:Math.max(6,(aw.clientWidth-W)/2+n*26-26)+'px',top:Math.max(6,(aw.clientHeight-H)/2+n*22-22)+'px'});
+  aw.appendChild(node);wins.push(w);
+  def.build($('.wbody',node),w,opts);
+  $('.minb',node).onclick=()=>{node.classList.add('min');renderTaskbar();};
+  $('.maxb',node).onclick=()=>node.classList.toggle('max');
+  $('.close',node).onclick=()=>{node.remove();wins.splice(wins.indexOf(w),1);renderTaskbar();};
+  node.addEventListener('pointerdown',()=>{if(!node.classList.contains('active'))focus(w);},true);
+  /* перетягування за заголовок (широкі екрани) */
+  const tb=$('.titlebar',node);let drag=null;
+  tb.addEventListener('pointerdown',e=>{if(narrow()||node.classList.contains('max')||e.target.closest('button'))return;drag={x:e.clientX-node.offsetLeft,y:e.clientY-node.offsetTop};tb.setPointerCapture(e.pointerId);});
+  tb.addEventListener('pointermove',e=>{if(!drag)return;node.style.left=clamp(e.clientX-drag.x,-W+80,innerWidth-80)+'px';node.style.top=clamp(e.clientY-drag.y,0,innerHeight-120)+'px';});
+  tb.addEventListener('pointerup',()=>drag=null);
+  tapper(tb,{dbl:e=>{if(!narrow()&&!e.target.closest('button'))node.classList.toggle('max');}});
+  focus(w);return w;
+}
+function focus(w){wins.forEach(x=>x.node.classList.remove('active'));w.node.classList.add('active');w.node.style.zIndex=++zTop;renderTaskbar();}
+
+function renderTaskbar(){
+  const box=$('#tbicons');box.innerHTML='';
+  const add=(html,cls)=>{const b=el('button','tbb '+cls,html);box.appendChild(b);return b;};
+  const sb=add(ico('win',24),'');sb.id='startbtn';sb.setAttribute('aria-label','Пуск');
+  sb.onclick=()=>{const w=$('#winx');if(!w.hidden){closeMenus();return;}showWinX();};
+  longPress(sb,()=>showWinX());
+  ['explorer','chrome'].forEach(id=>tbBtn(add,id));
+  wins.filter(w=>!['explorer','chrome'].includes(w.app)).forEach(w=>tbBtn(add,w.app));
+}
+function tbBtn(add,id){
+  const w=wins.find(x=>x.app===id);
+  const act=w&&w.node.classList.contains('active')&&!w.node.classList.contains('min');
+  const b=add(ico(APPS[id].icon,24),(w?'open ':'')+(act?'act':''));
+  b.setAttribute('aria-label',APPS[id].title);
+  b.onclick=()=>{closeMenus();
+    if(!w)return openApp(id);
+    if(w.node.classList.contains('min')){w.node.classList.remove('min');focus(w);}
+    else if(w.node.classList.contains('active')){w.node.classList.add('min');renderTaskbar();}
+    else focus(w);};
+}
+
+/* ---------- меню Пуск і Win+X ---------- */
+function closeMenus(){['#start','#winx','#ctx'].forEach(s=>{$(s).hidden=true;});}
+function toggleStart(){
+  const s=$('#start'),was=!s.hidden;closeMenus();if(was)return;
+  s.innerHTML=`<div class="srch">${gl('search',16)} Пошук програм, налаштувань і документів</div><h4>Закріплено</h4><div class="pgrid"></div><div class="pfoot"><span style="display:flex;align-items:center;gap:8px"><span class="avatar" style="width:30px;height:30px;font-size:14px">${PC.owner[0]}</span>${PC.owner}</span><span data-p style="padding:6px 10px;border-radius:5px">⏻</span></div>`;
+  const g=$('.pgrid',s);
+  [['Налаштування','settings',()=>openApp('settings')],['Провідник','folder',()=>openApp('explorer')],['Chrome','chrome',()=>openApp('chrome')],['Диспетчер завдань','taskmgr',()=>openApp('taskmgr')],
+   ['Калькулятор','exe',inactive],['Блокнот','doc',inactive],['Фотографії','img',inactive],['Пошта','exe',inactive]].forEach(([t,i,fn])=>{const p=el('div','pit',ico(i,32)+`<span>${t}</span>`);p.onclick=()=>{closeMenus();fn();};g.appendChild(p);});
+  $('[data-p]',s).onclick=()=>toast('Вимкнення в імітації не працює.');
+  s.hidden=false;
+}
+function showWinX(){
+  closeMenus();const m=$('#winx');m.innerHTML='';
+  const items=[['Програми та засоби',inactive],['Налаштування живлення',inactive],['Перегляд подій',inactive],['Система',()=>openApp('settings',{page:'about'})],['Диспетчер пристроїв',()=>openApp('devmgr')],['Мережні підключення',inactive],['Керування дисками',inactive],['Керування комп\'ютером',inactive],['Термінал Windows',inactive],['Термінал Windows (адміністратор)',inactive],'-',['Диспетчер завдань',()=>openApp('taskmgr')],['Налаштування',()=>openApp('settings')],['Провідник',()=>openApp('explorer')],['Пошук',inactive],['Виконати',inactive],'-',['Завершення роботи або вихід',inactive,1],['Робочий стіл',()=>{wins.forEach(x=>x.node.classList.add('min'));renderTaskbar();}]];
+  items.forEach(it=>{if(it==='-'){m.appendChild(el('div','msep'));return;}const r=el('div','mi',`<span>${it[0]}</span>${it[2]?'<span class="arr">›</span>':''}`);r.onclick=()=>{closeMenus();it[1]();};m.appendChild(r);});
+  m.hidden=false;
+}
+function showCtx(x,y,items){
+  closeMenus();const m=$('#ctx');m.innerHTML='';
+  items.forEach(([t,fn])=>{const r=el('div','mi',t);r.onclick=()=>{closeMenus();fn();};m.appendChild(r);});
+  m.hidden=false;m.style.left=Math.max(4,Math.min(x,innerWidth-m.offsetWidth-8))+'px';m.style.top=Math.max(4,Math.min(y,innerHeight-m.offsetHeight-60))+'px';
+}
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&(e.key==='Escape'||e.code==='Escape')){e.preventDefault();closeMenus();openApp('taskmgr');}});
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('#start,#winx,#ctx,#startbtn'))closeMenus();},true);
+
+/* ---------- робочий стіл ---------- */
+(function desk(){
+  const box=$('#icons');
+  const items=[['Цей ПК','pc',()=>openApp('explorer')],['Кошик','bin',()=>toast('Кошик у цій імітації порожній.')],
+    ...PC.fs.desktop.map(([n,k])=>[n,k,()=>k==='folder'?openApp('explorer',{page:'desktop'}):toast('Цей файл в імітації не відкривається.')])];
+  items.forEach(([label,icon,open])=>{
+    const d=el('div','dicon',ico(icon,40)+`<span>${label}</span>`);
+    tapper(d,{tap:()=>{$$('.dicon',box).forEach(x=>x.classList.remove('sel'));d.classList.add('sel');},dbl:open});
+    box.appendChild(d);
+  });
+  $('#desktop').addEventListener('pointerdown',e=>{if(e.target.id==='icons'||e.target.id==='desktop')$$('.dicon',box).forEach(x=>x.classList.remove('sel'));});
+})();
+
+/* ---------- підказка, годинник, запуск ---------- */
+$('#hintbtn').onclick=()=>modal({title:'Як користуватися імітацією',html:`
+  <p style="margin-top:0">Це <b>імітація</b> робочого столу Windows 11 (${PC.who}). Числа умовні.</p>
+  <ul class="hint" style="padding-left:18px;margin:0">
+    <li><b>Двічі швидко торкнись</b> значка «Цей ПК» (або один раз — значка папки внизу) — відкриється <b>Провідник</b>.</li>
+    <li><b>Торкнись</b> (клацни лівою кнопкою миші) кнопки Пуск (4 квадрати внизу ліворуч) або <b>довго притримай</b> її (правий клік теж працює) — відкриється меню: <b>Диспетчер завдань</b>, <b>Диспетчер пристроїв</b>, <b>Налаштування</b>, <b>Система</b>.</li>
+    <li>На комп'ютері Диспетчер завдань відкривається також клавішами <b>Ctrl + Shift + Esc</b>.</li>
+    <li>У Диспетчері завдань торкайся вкладок ліворуч (кнопка ☰ показує їхні назви). Щоб відсортувати таблицю, торкнись <b>заголовка стовпця</b>.</li>
+    <li>У Налаштуваннях: <b>Система → Про систему</b>.</li>
+    <li>У Провіднику довго притримай диск C: — з'явиться <b>Властивості</b>.</li>
+    <li>Тут нічого не можна видалити чи вимкнути: сьогодні <b>лише дивимося</b>.</li>
+  </ul>`});
+function clock(){const d=new Date();$('#clock').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');$('#cdate').textContent=[d.getDate(),d.getMonth()+1].map(x=>String(x).padStart(2,'0')).join('.')+'.'+d.getFullYear();}
+clock();setInterval(clock,10000);
+setInterval(()=>{tick();wins.forEach(w=>w.update&&!w.node.classList.contains('min')&&w.update());},1000);
+renderTaskbar();
+
+/* пряме відкриття через адресу: …html#taskmgr  #explorer  #devmgr  #settings  #about  #memory  #winx  #start */
+(function(){
+  const h=location.hash.slice(1);
+  if(h==='about')openApp('settings',{page:'about'});
+  else if(h==='memory')openApp('settings',{page:'memory'});
+  else if(h==='winx')showWinX();
+  else if(h==='start')toggleStart();
+  else if(APPS[h])openApp(h);
+})();
+</script>
+</body>
+</html>
