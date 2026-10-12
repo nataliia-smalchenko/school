@@ -73,7 +73,7 @@ async function load(){
 // Один учень може мати кілька записів (чернетки й остаточний): беремо найновіший, а бали вчительки з будь-якого
 function collapse(list){
  const m=new Map();
- list.forEach(r=>{const k=r.client_id||('id'+r.id);const o=m.get(k);if(!o){m.set(k,r);}else if(!o.teacher&&r.teacher){o.teacher=r.teacher;}});
+ list.forEach(r=>{const k=(r.payload&&r.payload.cid)||r.client_id||('id'+r.id);const o=m.get(k);if(!o){m.set(k,r);}else if(!o.teacher&&r.teacher){o.teacher=r.teacher;}});
  return [...m.values()];
 }
 $('#files').onchange=async e=>{rows=[];let i=0;for(const f of e.target.files){try{const o=JSON.parse(await f.text());o.id='f'+(i++);o.created_at=new Date(f.lastModified).toISOString();rows.push(o);}catch(_){}}show();};
