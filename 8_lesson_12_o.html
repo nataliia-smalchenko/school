@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Збираю комп'ютер</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#1c2333;--mut:#5b6478;--acc:#2f6fed;--acc2:#e8f0ff;--ok:#1b8a4b;--okbg:#e6f6ec;--bad:#c62828;--badbg:#fdeaea;--warn:#a96200;--warnbg:#fff4e0;--line:#d9deea}
+@media (prefers-color-scheme:dark){:root{--bg:#12151d;--card:#1b2030;--ink:#e8ecf6;--mut:#9aa4bd;--acc:#6b9cff;--acc2:#222c47;--ok:#58d38b;--okbg:#17301f;--bad:#ff8a8a;--badbg:#3a1c1c;--warn:#ffc267;--warnbg:#3a2a12;--line:#2f3750}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:84px}
+.wrap{max-width:720px;margin:0 auto;padding:12px 16px}
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 16px 6px;border-bottom:1px solid var(--line)}
+header.top .in{max-width:720px;margin:0 auto}
+.prog{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:6px}
+.prog>i{display:block;height:100%;background:var(--acc);transition:width .3s}
+.stepname{font-size:14px;color:var(--mut);display:flex;justify-content:space-between;gap:8px}
+h1{font-size:22px;margin:8px 0}
+h2{font-size:19px;margin:6px 0 8px}
+p{margin:8px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+.hint{background:var(--acc2);border-left:4px solid var(--acc);border-radius:8px;padding:10px 12px;margin:10px 0}
+.hint b{display:block;margin-bottom:2px}
+.warn{background:var(--warnbg);border-left:4px solid var(--warn);border-radius:8px;padding:10px 12px;margin:10px 0}
+label.f{display:block;font-weight:600;margin:12px 0 4px}
+input[type=text],input[type=number],textarea{width:100%;font:inherit;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+textarea{min-height:110px;resize:vertical}
+.btn{font:inherit;font-weight:600;min-height:48px;padding:10px 18px;border-radius:12px;border:0;background:var(--acc);color:#fff;cursor:pointer}
+.btn.sec{background:var(--acc2);color:var(--acc)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);padding:8px 16px calc(8px + env(safe-area-inset-bottom))}
+.nav .in{max-width:720px;margin:0 auto;display:flex;gap:10px;align-items:center}
+.nav .sum{flex:1;min-width:0;font-size:13px;line-height:1.25;cursor:pointer}
+.nav .sum b{font-size:16px}
+.nav .sum.over b{color:var(--bad)}
+.nav .btn{flex:none}
+.optw{border:2px solid var(--line);border-radius:16px;padding:12px;margin:22px 0;background:var(--card)}
+.optw.sel{border-color:var(--acc);background:var(--acc2)}
+.opt{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:transparent;border:0;padding:0;margin:0;cursor:pointer}
+.opt .row{display:flex;gap:12px}
+.ph{flex:none;width:84px;height:84px;border-radius:10px;background:#eef1f7;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.opt .nm{font-weight:700}
+.opt .pr{font-weight:700;color:var(--acc);white-space:nowrap}
+.opt ul{margin:4px 0 0;padding-left:18px;color:var(--mut);font-size:14px}
+details.more{margin-top:4px;font-size:14px}
+details.more summary{cursor:pointer;color:var(--acc);min-height:32px;display:flex;align-items:center}
+.src{font-size:14px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.src .rg{margin-bottom:8px}
+a.hl{display:block;text-align:center;min-height:44px;padding:11px 12px;border-radius:12px;background:var(--acc);color:#fff;font-weight:600;text-decoration:none}
+.optw.sel a.hl{background:var(--acc)}
+.sub{font-weight:700;margin:20px 0 0;font-size:17px}
+.sit{border-left:6px solid var(--acc)}
+.sit .big{font-size:20px;font-weight:700}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t td,table.t th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t td:last-child,table.t th:last-child{text-align:right;white-space:nowrap}
+.chk{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.chk .m{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff}
+.chk.ok .m{background:var(--ok)}.chk.no .m{background:var(--bad)}
+.score{font-size:40px;font-weight:800;text-align:center;margin:4px 0}
+.game{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gb{display:block;width:100%;margin-bottom:8px;font:inherit;color:inherit;text-align:left;border:2px solid var(--line);background:var(--card);border-radius:12px;padding:10px;min-height:56px;cursor:pointer}
+.gtray{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gtray .gb{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;font-size:13px;margin:0}
+.gi svg{width:56px;height:56px;background:#eef1f7;border-radius:8px}
+.gb.sel{border-color:var(--acc);background:var(--acc2)}.gb.done{border-color:var(--ok);background:var(--okbg);cursor:default}.gb.err{border-color:var(--bad);background:var(--badbg)}
+.small{font-size:13px;color:var(--mut)}
+details.det{margin-top:8px}
+details.det summary{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border-radius:12px;background:var(--acc);color:#fff;font-weight:600;cursor:pointer;list-style:none}
+details.det summary::-webkit-details-marker{display:none}
+details.det[open] summary{background:var(--card);color:var(--acc);border:2px solid var(--acc)}
+details.det dl{margin:10px 0 0}
+details.det dt{font-weight:700;margin-top:8px}
+details.det dd{margin:2px 0 0;color:var(--ink)}
+.center{text-align:center}
+.okc{color:var(--ok);font-weight:700}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:13px;background:var(--acc2);color:var(--acc)}
+
+.tg text{font-size:12px}
+@media (max-width:600px){
+ body{font-size:17.5px}
+ h1{font-size:25px}h2{font-size:22px}
+ .stepname{font-size:15px}
+ .opt .nm{font-size:17.5px}.opt .pr{font-size:17px}
+ .opt ul{font-size:16px}
+ details.more{font-size:16.5px}
+ .src{font-size:16px}.small{font-size:15px}
+ table.t{font-size:16px}
+ .nav .sum{font-size:14.5px}.nav .sum b{font-size:17.5px}
+ .btn{font-size:17px}
+ .gtray .gb{font-size:15.5px}
+ .chk{font-size:16.5px}
+ label.f{font-size:17.5px}
+ input[type=text],input[type=number],textarea{font-size:17px}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="in"><div class="stepname"><span id="stn">Збираю комп'ютер</span><span id="stc"></span></div><div class="prog"><i id="pg" style="width:0"></i></div></div></header>
+<main class="wrap" id="app"></main>
+<div class="nav"><div class="in">
+  <button class="btn sec" id="bBack" type="button">Назад</button>
+  <div class="sum" id="sum"></div>
+  <button class="btn" id="bNext" type="button">Далі</button>
+</div></div>
+
+<script>
+/* ============ ДАНІ (змінюйте ціни лише тут) ============
+   price — середня ціна, грн; status: «пошук» (ціну знайдено в оголошеннях магазину) або «оцінка» (орієнтовна, перевірте).
+   Діапазон на сторінці: пошук ±10 %, оцінка ±15 %. Дата цін — PRICE_DATE. Малюнки на картках схематичні (функція ico). */
+/*CATALOG-START*/
+const PRICE_DATE='11.10.2026';
+const SUPABASE={url:'https://zpozqtlwnzxhesjawmhb.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpwb3pxdGx3bnp4aGVzamF3bWhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3NjExNTEsImV4cCI6MjEwNzMzNzE1MX0.E90Fqt499pB4R4oYdpmQMWgTCmGu2V_BVxYZhvl86rk'};
+const CAT={
+cpu:[
+{id:'cpu_5500',name:'AMD Ryzen 5 5500 BOX',price:4300,status:'пошук',q:'Ryzen 5 5500 BOX',socket:'AM4',w:65,igpu:false,cooler:true,cores:6,specs:['Сокет AM4','6 ядер / 12 потоків, 3,6–4,2 ГГц','TDP 65 Вт'],more:['Вбудованої графіки немає: потрібна відеокарта','Кулер Wraith Stealth у комплекті','Працює з пам\'яттю DDR4']},
+{id:'cpu_5600',name:'AMD Ryzen 5 5600 BOX',price:6900,status:'пошук',q:'Ryzen 5 5600 BOX',socket:'AM4',w:65,igpu:false,cooler:true,cores:6,specs:['Сокет AM4','6 ядер / 12 потоків, 3,5–4,4 ГГц','TDP 65 Вт'],more:['Вбудованої графіки немає: потрібна відеокарта','Кулер Wraith Stealth у комплекті','Працює з пам\'яттю DDR4']},
+{id:'cpu_5700x',name:'AMD Ryzen 7 5700X (без кулера)',price:8550,status:'пошук',q:'Ryzen 7 5700X',socket:'AM4',w:65,igpu:false,cooler:false,cores:8,specs:['Сокет AM4','8 ядер / 16 потоків, 3,4–4,6 ГГц','TDP 65 Вт'],more:['Вбудованої графіки немає: потрібна відеокарта','Кулера в комплекті немає: потрібен окремий','Працює з пам\'яттю DDR4']},
+{id:'cpu_12400f',name:'Intel Core i5-12400F BOX',price:8700,status:'пошук',q:'Core i5-12400F BOX',socket:'LGA1700',w:65,igpu:false,cooler:true,cores:6,specs:['Сокет LGA1700','6 ядер / 12 потоків, 2,5–4,4 ГГц','TDP 65 Вт'],more:['Літера F означає, що вбудованої графіки немає','У піку споживає до 117 Вт','Кулер Intel у комплекті','Працює з DDR4 або DDR5, залежно від материнської плати']},
+{id:'cpu_12100',name:'Intel Core i3-12100 BOX',price:8200,status:'пошук',q:'Core i3-12100 BOX',socket:'LGA1700',w:60,igpu:true,cooler:true,cores:4,specs:['Сокет LGA1700','4 ядра / 8 потоків, 3,3–4,3 ГГц','TDP 60 Вт'],more:['Вбудована графіка Intel UHD 730: для роботи й навчання вистачає, для ігор і 3D ні','Кулер Intel у комплекті','Працює з DDR4 або DDR5, залежно від материнської плати','У піку споживає до 89 Вт']},
+{id:'cpu_7700',name:'AMD Ryzen 7 7700 BOX',price:9500,status:'пошук',q:'Ryzen 7 7700 BOX',socket:'AM5',w:65,igpu:true,cooler:true,cores:8,specs:['Сокет AM5','8 ядер / 16 потоків, 3,8–5,3 ГГц','TDP 65 Вт'],more:['Проста вбудована графіка Radeon: для роботи й навчання вистачає, для ігор і 3D ні','Кулер Wraith Prism у комплекті','Працює лише з пам\'яттю DDR5']},
+{id:'cpu_8600g',name:'AMD Ryzen 5 8600G BOX',price:11000,status:'пошук',q:'Ryzen 5 8600G BOX',socket:'AM5',w:65,igpu:true,cooler:true,cores:6,specs:['Сокет AM5','6 ядер / 12 потоків, 4,3–5,0 ГГц','TDP 65 Вт'],more:['Потужніша вбудована графіка Radeon 760M: окрема відеокарта не обов\'язкова','Кулер Wraith Stealth у комплекті','Працює лише з пам\'яттю DDR5']}
+],
+mb:[
+{id:'mb_a520',name:'ASRock A520M-HDV',price:2700,status:'пошук',q:'ASRock A520M-HDV',socket:'AM4',ff:'mATX',ram:'DDR4',m2:1,specs:['Сокет AM4, чипсет A520','Формат mATX','Пам\'ять DDR4','1 слот M.2','Відеовиходи (лише з вбудованою графікою): HDMI, DVI-D, VGA'],more:['Найпростіша плата для AM4','Відеовиходи плати працюють лише з процесорами, що мають вбудовану графіку']},
+{id:'mb_b550',name:'MSI B550-A PRO',price:5300,status:'пошук',q:'MSI B550-A PRO',socket:'AM4',ff:'ATX',ram:'DDR4',m2:2,specs:['Сокет AM4, чипсет B550','Формат ATX','Пам\'ять DDR4','2 слоти M.2','Відеовиходи (лише з вбудованою графікою): HDMI, DisplayPort'],more:['Повнорозмірна плата: у малий корпус mATX вона не поміститься']},
+{id:'mb_b760',name:'Gigabyte B760M DS3H DDR4',price:4700,status:'пошук',q:'Gigabyte B760M DS3H DDR4',socket:'LGA1700',ff:'mATX',ram:'DDR4',m2:2,specs:['Сокет LGA1700, чипсет B760','Формат mATX','Пам\'ять DDR4','2 слоти M.2','Відеовиходи (лише з вбудованою графікою): HDMI'],more:['Для процесорів Intel 12–14 покоління']},
+{id:'mb_b650m',name:'ASUS PRIME B650M-K',price:5000,status:'пошук',q:'ASUS PRIME B650M-K',socket:'AM5',ff:'mATX',ram:'DDR5',m2:2,specs:['Сокет AM5, чипсет B650','Формат mATX','Пам\'ять DDR5','2 слоти M.2','Відеовиходи (лише з вбудованою графікою): HDMI'],more:['Нова платформа AMD: пам\'ять DDR4 не підтримує']},
+{id:'mb_b650',name:'Gigabyte B650 EAGLE',price:6200,status:'пошук',q:'Gigabyte B650 EAGLE',socket:'AM5',ff:'ATX',ram:'DDR5',m2:2,specs:['Сокет AM5, чипсет B650','Формат ATX','Пам\'ять DDR5','2 слоти M.2','Відеовиходи (лише з вбудованою графікою): HDMI, DisplayPort'],more:['Повнорозмірна плата: у малий корпус mATX вона не поміститься']}
+],
+ram:[
+{id:'ram_c8',name:'Crucial 8 ГБ DDR4-3200 (1×8)',price:3900,status:'пошук',q:'Crucial 8GB DDR4 3200',type:'DDR4',gb:8,w:5,specs:['DDR4-3200, форма DIMM (для настільного ПК)','8 ГБ, один модуль'],more:['Для сучасної Windows із браузером це мінімум']},
+{id:'ram_k16',name:'Kingston FURY Beast 16 ГБ (2×8) DDR4-3200',price:10600,status:'пошук',q:'Kingston FURY Beast 16GB DDR4 3200 KF432C16BBK2/16',type:'DDR4',gb:16,w:5,specs:['DDR4-3200, форма DIMM (для настільного ПК)','16 ГБ, комплект 2×8 ГБ'],more:['Два модулі працюють у двоканальному режимі: швидше за один']},
+{id:'ram_k32',name:'Kingston FURY Beast 32 ГБ (2×16) DDR4-3200',price:19500,status:'пошук',q:'Kingston FURY Beast 32GB DDR4 3200 KF432C16BBK2/32',type:'DDR4',gb:32,w:5,specs:['DDR4-3200, форма DIMM (для настільного ПК)','32 ГБ, комплект 2×16 ГБ'],more:['Для монтажу відео, 3D і програмування']},
+{id:'ram_d8',name:'Kingston FURY Beast 8 ГБ DDR5-5600 (1×8)',price:8250,status:'пошук',q:'Kingston FURY Beast 8GB DDR5 5600',type:'DDR5',gb:8,w:5,specs:['DDR5-5600, форма DIMM (для настільного ПК)','8 ГБ, один модуль'],more:['Мінімум для сучасної Windows']},
+{id:'ram_d16',name:'Kingston FURY Beast 16 ГБ (2×8) DDR5-5600',price:14300,status:'пошук',q:'Kingston FURY Beast 16GB DDR5 5600',type:'DDR5',gb:16,w:5,specs:['DDR5-5600, форма DIMM (для настільного ПК)','16 ГБ, комплект 2×8 ГБ'],more:['Двоканальний режим']},
+{id:'ram_d32',name:'Corsair Vengeance 32 ГБ (2×16) DDR5-6000',price:24000,status:'пошук',q:'Corsair Vengeance 32GB DDR5 6000',type:'DDR5',gb:32,w:5,specs:['DDR5-6000, форма DIMM (для настільного ПК)','32 ГБ, комплект 2×16 ГБ'],more:['Для монтажу відео, 3D і програмування']}
+],
+ssd:[
+{id:'ssd_a400',name:'Kingston A400 480 ГБ (SATA SSD)',price:4500,status:'пошук',q:'Kingston A400 480GB SSD',type:'SATA SSD',gb:480,w:5,specs:['SSD, інтерфейс SATA','480 ГБ','Читання до 500 МБ/с'],more:['Набагато швидший за HDD, але повільніший за M.2 NVMe']},
+{id:'ssd_bc2',name:'Seagate BarraCuda 2 ТБ (HDD 7200 об/хв)',price:6200,status:'пошук',q:'Seagate BarraCuda 2TB HDD',type:'HDD',gb:2000,w:8,specs:['Жорсткий диск HDD','2 ТБ, 7200 об/хв','Читання ≈ 200 МБ/с'],more:['Найдешевший за гігабайт, але повільний і чутливий до струсів']},
+{id:'ssd_sn580',name:'WD Blue SN580 1 ТБ (M.2 NVMe)',price:10600,status:'пошук',q:'WD Blue SN580 1TB',type:'NVMe',gb:1000,w:5,specs:['SSD M.2 NVMe, PCIe 4.0','1 ТБ','Читання до 4150 МБ/с'],more:['Ставиться у слот M.2 на материнській платі']},
+{id:'ssd_990',name:'Samsung 990 PRO 2 ТБ (M.2 NVMe)',price:18000,status:'пошук',q:'Samsung 990 PRO 2TB',type:'NVMe',gb:2000,w:6,specs:['SSD M.2 NVMe, PCIe 4.0','2 ТБ','Читання до 7450 МБ/с'],more:['Швидкий накопичувач для великих проєктів']}
+],
+gpu:[
+{id:'gpu_int',name:'Без відеокарти: вбудована графіка процесора',price:0,status:'пошук',q:'',w:0,vram:0,rec:0,specs:['Зображення рахує сам процесор','Додаткових витрат і споживання немає','Монітор підключають до роз\'ємів материнської плати'],more:['Працює лише якщо в процесорі є вбудована графіка']},
+{id:'gpu_1650',name:'Gigabyte GeForce GTX 1650 D6 OC 4G',price:7900,status:'пошук',q:'GeForce GTX 1650 4GB',w:75,vram:4,rec:300,specs:['4 ГБ GDDR6','Споживання ≈ 75 Вт','Блок живлення від 300 Вт','Виходи на монітор: HDMI, DisplayPort'],more:['Додаткове живлення не потрібне: карта живиться від слота плати','Для офісу, відео й нескладних ігор']},
+{id:'gpu_6600',name:'Sapphire PULSE Radeon RX 6600 8G',price:10900,status:'пошук',q:'Radeon RX 6600 8GB',w:132,vram:8,rec:450,specs:['8 ГБ GDDR6','Споживання ≈ 132 Вт','Блок живлення від 450 Вт','Виходи на монітор: HDMI, DisplayPort'],more:['Для ігор у Full HD та простого монтажу']},
+{id:'gpu_4060',name:'MSI GeForce RTX 4060 VENTUS 2X BLACK 8G',price:18000,status:'пошук',q:'GeForce RTX 4060 8GB',w:115,vram:8,rec:550,specs:['8 ГБ GDDR6','Споживання ≈ 115 Вт','Блок живлення від 550 Вт','Виходи на монітор: HDMI, DisplayPort'],more:['Апаратне кодування відео прискорює монтаж']},
+{id:'gpu_5060ti',name:'ASUS PRIME GeForce RTX 5060 Ti 16GB',price:43300,status:'пошук',q:'GeForce RTX 5060 Ti 16GB',w:180,vram:16,rec:600,specs:['16 ГБ GDDR7','Споживання ≈ 180 Вт','Блок живлення від 600 Вт','Виходи на монітор: HDMI, DisplayPort'],more:['Багато відеопам\'яті для великих 3D-сцен']},
+{id:'gpu_4070s',name:'Palit GeForce RTX 4070 SUPER 12GB',price:33000,status:'пошук',q:'GeForce RTX 4070 SUPER 12GB',w:220,vram:12,rec:650,specs:['12 ГБ GDDR6X','Споживання ≈ 220 Вт','Блок живлення від 650 Вт','Виходи на монітор: HDMI, DisplayPort'],more:['Потужна карта для 3D-моделювання й важкого відео']}
+],
+cool:[
+{id:'cool_stock',name:'Кулер із комплекту процесора',price:0,status:'пошук',q:'',w:3,quiet:false,specs:['Входить у ціну процесора','Рівень шуму середній'],more:['Є лише в процесорів «BOX», окрім моделей «без кулера»']},
+{id:'cool_ag400',name:'DeepCool AG400',price:1050,status:'пошук',q:'DeepCool AG400',w:3,quiet:false,specs:['Баштовий, вентилятор 120 мм','Шум ≈ 29 дБ','Відводить до 220 Вт'],more:['Підходить до AM4, AM5 і LGA1700']},
+{id:'cool_pa',name:'Thermalright Peerless Assassin 120 SE',price:2400,status:'пошук',q:'Thermalright Peerless Assassin 120 SE',w:3,quiet:false,specs:['Баштовий, вентилятор 120 мм','Шум ≈ 26 дБ','Відводить до 245 Вт'],more:['Підходить до AM4, AM5 і LGA1700']},
+{id:'cool_pr2',name:'be quiet! Pure Rock 2',price:1900,status:'пошук',q:'be quiet Pure Rock 2',w:3,quiet:true,specs:['Баштовий, вентилятор 120 мм','Шум ≈ 27 дБ (тихий)','Відводить до 150 Вт'],more:['Підходить до AM4, AM5 і LGA1700']},
+{id:'cool_noctua',name:'Noctua NH-U12S',price:3400,status:'пошук',q:'Noctua NH-U12S',w:2,quiet:true,specs:['Баштовий, вентилятор 120 мм','Шум ≈ 22 дБ (дуже тихий)','Відводить до 160 Вт'],more:['Підходить до AM4, AM5 і LGA1700']}
+],
+psu:[
+{id:'psu_ch500',name:'Chieftec Eco 500 Вт',price:2300,status:'пошук',q:'Chieftec Eco 500W',watt:500,specs:['Потужність 500 Вт','Формат ATX'],more:['Бюджетний блок живлення']},
+{id:'psu_bq550',name:'be quiet! System Power 10 550 Вт',price:2800,status:'пошук',q:'be quiet System Power 10 550W',watt:550,specs:['Потужність 550 Вт','Тихий вентилятор'],more:['Підходить для більшості ПК середнього рівня']},
+{id:'psu_cx650',name:'Corsair CX650 650 Вт, 80 PLUS Bronze',price:3900,status:'пошук',q:'Corsair CX650',watt:650,specs:['Потужність 650 Вт','Сертифікат 80 PLUS Bronze'],more:['Сертифікат показує ККД: менше тепла й витрат на електроенергію']},
+{id:'psu_sf750',name:'Seasonic FOCUS GX-750 750 Вт, 80 PLUS Gold',price:7300,status:'пошук',q:'Seasonic FOCUS GX-750',watt:750,specs:['Потужність 750 Вт','Сертифікат 80 PLUS Gold'],more:['Висока якість і довга гарантія']}
+],
+case:[
+{id:'case_mx40',name:'DeepCool MATREXX 40 3FS',price:2800,status:'пошук',q:'DeepCool MATREXX 40 3FS',ff:'mATX',quiet:false,specs:['Формат mATX (малі й середні плати)','Три вентилятори'],more:['Плата ATX сюди не поміститься']},
+{id:'case_q300',name:'Cooler Master MasterBox Q300L',price:3100,status:'пошук',q:'Cooler Master MasterBox Q300L',ff:'mATX',quiet:false,specs:['Формат mATX','Пиловий фільтр'],more:['Плата ATX сюди не поміститься']},
+{id:'case_s4',name:'Zalman S4 Plus',price:2400,status:'пошук',q:'Zalman S4 Plus',ff:'ATX',quiet:false,specs:['Формат ATX (підходить і mATX)','Три вентилятори'],more:['Повнорозмірний корпус']},
+{id:'case_pb500',name:'be quiet! Pure Base 500',price:3800,status:'пошук',q:'be quiet Pure Base 500',ff:'ATX',quiet:true,specs:['Формат ATX (підходить і mATX)','Звукоізоляція'],more:['Тихий корпус із м\'якими панелями']}
+],
+mon:[
+{id:'mon_221',name:'Philips 221V8 21,5″',price:3500,status:'пошук',q:'Philips 221V8',size:21.5,res:'FHD',w:20,specs:['21,5″, VA, 1920×1080','75 Гц','HDMI, VGA','Споживання ≈ 20 Вт'],more:['Невеликий і дешевий']},
+{id:'mon_24',name:'AOC 24B3HA2 23,8″',price:3400,status:'пошук',q:'AOC 24B3HA2',size:23.8,res:'FHD',w:25,specs:['23,8″, IPS, 1920×1080','100 Гц','HDMI, VGA','Споживання ≈ 25 Вт'],more:['Універсальний варіант для навчання','Є вбудовані динаміки 2×2 Вт']},
+{id:'mon_27',name:'AOC 27G2SPAE 27″',price:8300,status:'пошук',q:'AOC 27G2SPAE',size:27,res:'FHD',w:35,specs:['27″, IPS, 1920×1080','165 Гц','HDMI, DisplayPort','Споживання ≈ 35 Вт'],more:['Швидка матриця, добре видно кольори']},
+{id:'mon_4k',name:'Dell S2722QC 27″ 4K',price:17000,status:'пошук',q:'Dell S2722QC',size:27,res:'4K',w:40,specs:['27″, IPS, 3840×2160 (4K)','60 Гц','HDMI, USB-C','Споживання ≈ 40 Вт'],more:['Висока чіткість: добре для 3D і дизайну']}
+],
+kb:[
+{id:'kb_k120',name:'Logitech K120',price:500,status:'пошук',q:'Logitech K120',specs:['Дротова, мембранна','Повнорозмірна'],more:['Дешева й надійна']},
+{id:'kb_k380',name:'Logitech K380',price:1800,status:'пошук',q:'Logitech K380',specs:['Бездротова (Bluetooth)','Тонка, тиха'],more:['Працює і з ПК, і зі смартфоном']},
+{id:'kb_k552',name:'Redragon K552 Kumara',price:2900,status:'пошук',q:'Redragon K552 Kumara',specs:['Дротова, механічна','Без цифрового блоку'],more:['Гучніша, ніж мембранні']},
+{id:'kb_mxkeys',name:'Logitech MX Keys S',price:6900,status:'пошук',q:'Logitech MX Keys S',specs:['Бездротова, низькопрофільна','Підсвічування клавіш'],more:['Для тривалого набору тексту']}
+],
+ms:[
+{id:'ms_b100',name:'Logitech B100',price:300,status:'пошук',q:'Logitech B100',specs:['Дротова, оптична'],more:['Найпростіша']},
+{id:'ms_m185',name:'Logitech M185',price:1550,status:'пошук',q:'Logitech M185',specs:['Бездротова, 2,4 ГГц'],more:['Потрібна батарейка']},
+{id:'ms_de',name:'Razer DeathAdder Essential',price:1300,status:'пошук',q:'Razer DeathAdder Essential',specs:['Дротова, ігрова'],more:['Точний сенсор для ігор']},
+{id:'ms_mx3s',name:'Logitech MX Master 3S',price:4500,status:'пошук',q:'Logitech MX Master 3S',specs:['Бездротова, тихі кнопки'],more:['Зручна для багатогодинної роботи']}
+],
+cam:[
+{id:'cam_none',name:'Без вебкамери',price:0,status:'пошук',q:'',mic:false,specs:['Не купувати'],more:[]},
+{id:'cam_c270',name:'Logitech C270 HD',price:1500,status:'пошук',q:'Logitech C270',mic:true,specs:['720p, 30 кадр/с','Мікрофон є'],more:['Достатньо для уроків і відеодзвінків']},
+{id:'cam_c920',name:'Logitech C920 HD Pro',price:6900,status:'пошук',q:'Logitech C920',mic:true,specs:['1080p, 30 кадр/с','Стереомікрофони'],more:['Чіткіша картинка для стрімів']}
+],
+aud:[
+{id:'aud_none',name:'Без навушників чи колонок',price:0,status:'пошук',q:'',mic:false,studio:false,specs:['Не купувати'],more:[]},
+{id:'aud_h111',name:'Logitech H111 (гарнітура)',price:1000,status:'пошук',q:'Logitech H111',mic:true,studio:false,specs:['Навушники з мікрофоном','Дротові, 3,5 мм'],more:['Просте рішення для уроків']},
+{id:'aud_stinger',name:'HyperX Cloud Stinger Core (гарнітура)',price:1800,status:'пошук',q:'HyperX Cloud Stinger Core',mic:true,studio:false,specs:['Навушники з мікрофоном','Дротові, 3,5 мм'],more:['Для ігор і спілкування']},
+{id:'aud_m20x',name:'Audio-Technica ATH-M20x (студійні)',price:3200,status:'пошук',q:'Audio-Technica ATH-M20x',mic:false,studio:true,specs:['Студійні навушники','Мікрофона немає'],more:['Точний звук для запису й монтажу']}
+]};
+const ICON={cpu:'🧠',mb:'🔲',ram:'🧩',ssd:'💾',gpu:'🎮',cool:'🌀',psu:'🔌',case:'🗄️',mon:'🖥️',kb:'⌨️',ms:'🖱️',cam:'📷',aud:'🎧'};
+const BASE_W=40; // материнська плата 30 Вт + вентилятори корпусу 10 Вт
+const SIT=[
+{id:1,name:'Макс, восьмикласник: навчання й дистанційка',budget:46000,text:'Макс навчається онлайн, пише проєкти й дивиться відео. Іноді грає в нескладні ігри. Потрібен недорогий і надійний комп\'ютер. Гроші не безмежні.',reqs:[
+ {t:'є вебкамера або гарнітура з мікрофоном',f:b=>b.cam.mic||b.aud.mic},
+ {t:'пам\'яті щонайменше 16 ГБ',f:b=>b.ram.gb>=16},
+ {t:'відеокарта не дорожча за 15 000 грн (або її немає)',f:b=>b.gpu.price<=15000}]},
+{id:2,name:'Бабуся Ганна: відеодзвінки онукам',budget:38000,text:'Бабуся хоче дивитися новини, читати пошту й щодня телефонувати онукам по відео. Їй важливо, щоб було чітко видно. Складного нічого не потрібно.',reqs:[
+ {t:'монітор від 23,8″, щоб було добре видно',f:b=>b.mon.size>=23.8},
+ {t:'є вебкамера',f:b=>b.cam.id!=='cam_none'},
+ {t:'системний диск SSD, а не HDD (швидко вмикається)',f:b=>b.ssd.type!=='HDD'}]},
+{id:3,name:'Пункт незламності в укритті',budget:38000,text:'Комп\'ютер стоятиме в укритті. Світло часто вимикають, тому ПК живитиметься від зарядної станції. Зробіть комп\'ютер із монітором якомога економнішим.',reqs:[
+ {t:'без окремої відеокарти',f:b=>b.gpu.id==='gpu_int'},
+ {t:'споживання комп\'ютера разом із монітором не більше 150 Вт',f:b=>totalW(b)<=150},
+ {t:'системний диск SSD, а не HDD',f:b=>b.ssd.type!=='HDD'}]},
+{id:4,name:'Сільська бібліотека: ПК для відвідувачів',budget:35000,text:'Бібліотека купує комп\'ютер для читального залу. Користуватимуться ним усі: від дітей до пенсіонерів. Потрібен надійний і недорогий ПК.',reqs:[
+ {t:'системний диск SSD, а не HDD',f:b=>b.ssd.type!=='HDD'},
+ {t:'пам\'яті щонайменше 8 ГБ',f:b=>b.ram.gb>=8},
+ {t:'відеокарта не дорожча за 8 000 грн (або її немає)',f:b=>b.gpu.price<=8000}]},
+{id:5,name:'Тихий ПК для запису подкастів і музики',budget:52000,text:'Студентка записує подкасти й музику. Будь-який шум від комп\'ютера потрапляє в мікрофон. Потрібен найтихіший ПК і якісні навушники.',reqs:[
+ {t:'тихий кулер процесора',f:b=>b.cool.quiet},
+ {t:'тихий корпус',f:b=>b.case.quiet},
+ {t:'студійні навушники',f:b=>b.aud.studio},
+ {t:'пам\'яті щонайменше 16 ГБ',f:b=>b.ram.gb>=16}]},
+{id:6,name:'Програміст-початківець',budget:64000,text:'Тимур вчиться програмувати й запускає одночасно редактор коду, браузер зі сторінками документації та віртуальну машину. Чекати завантаження він не хоче.',reqs:[
+ {t:'пам\'яті щонайменше 32 ГБ',f:b=>b.ram.gb>=32},
+ {t:'швидкий диск NVMe від 1 ТБ',f:b=>b.ssd.type==='NVMe'&&b.ssd.gb>=1000},
+ {t:'монітор 27″',f:b=>b.mon.size>=27}]},
+{id:7,name:'Блогерка: монтаж відео',budget:62000,text:'Влада монтує відео для свого каналу. Рендер довго займає ПК, тож їй потрібні швидкий процесор, відеокарта й місткий швидкий диск.',reqs:[
+ {t:'процесор із 8 ядрами',f:b=>b.cpu.cores>=8},
+ {t:'окрема відеокарта від 8 ГБ відеопам\'яті',f:b=>b.gpu.vram>=8},
+ {t:'швидкий диск NVMe від 1 ТБ',f:b=>b.ssd.type==='NVMe'&&b.ssd.gb>=1000},
+ {t:'пам\'яті щонайменше 16 ГБ',f:b=>b.ram.gb>=16}]},
+{id:8,name:'Студентка-архітекторка: 3D-моделювання',budget:110000,text:'Оксана створює 3D-моделі будівель. Великі сцени потребують багато пам\'яті, а на екрані важливо бачити дрібні деталі. Бюджет великий, але не безмежний.',reqs:[
+ {t:'відеокарта від 12 ГБ відеопам\'яті',f:b=>b.gpu.vram>=12},
+ {t:'пам\'яті щонайменше 32 ГБ',f:b=>b.ram.gb>=32},
+ {t:'монітор із роздільністю 4K',f:b=>b.mon.res==='4K'}]}
+];
+function totalW(b){return b.cpu.w+b.gpu.w+BASE_W+b.ram.w+b.ssd.w+b.cool.w+b.mon.w;}
+function compat(b){
+ const e=[];
+ if(b.cpu.socket!==b.mb.socket)e.push({k:'socket',t:'Процесор ('+b.cpu.socket+') не підходить до сокета материнської плати ('+b.mb.socket+')'});
+ if(b.ram.type!==b.mb.ram)e.push({k:'ram',t:'Пам\'ять '+b.ram.type+' не підходить до материнської плати, яка працює з '+b.mb.ram});
+ if(b.mb.ff==='ATX'&&b.case.ff==='mATX')e.push({k:'case',t:'Плата формату ATX не поміститься в корпус mATX'});
+ if(!b.cpu.igpu&&b.gpu.id==='gpu_int')e.push({k:'gpu',t:'У цього процесора немає вбудованої графіки, а відеокарти немає: зображення не буде'});
+ if(!b.cpu.cooler&&b.cool.id==='cool_stock')e.push({k:'cool',t:'У комплекті з цим процесором кулера немає, а ви обрали «кулер із комплекту»'});
+ const need=Math.max(Math.ceil(totalW(b)*1.3),b.gpu.rec);
+ if(b.psu.watt<need)e.push({k:'psu',t:'Блок живлення слабкий: потрібно щонайменше '+need+' Вт (запас 30 % і вимога відеокарти), а в нього '+b.psu.watt+' Вт'});
+ return e;
+}
+function total(b){return Object.values(b).reduce((s,x)=>s+(x.price||0),0);}
+/*CATALOG-END*/
+window.L12O={CAT:CAT,SIT:SIT}; // для сторінки вчителя
+
+/* ============ ДОПОМІЖНЕ ============ */
+// Усі вставки HTML проходять через setH; текст, який вводить учень, завжди екранується функцією esc.
+function setH(el,h){el.replaceChildren();el.insertAdjacentHTML('beforeend',h);}
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Math.round(n).toLocaleString('uk-UA').replace(/[  ]/g,' ');
+
+/* ============ СТАН ============ */
+const KEY='l12o_state', QKEY='l12o_queue';
+const STEPS=[
+ {id:'name',n:'Знайомство'},
+ {id:'sit',n:'Ситуація'},
+ {id:'cpumb',n:'Процесор і плата',cats:['cpu','mb']},
+ {id:'ram',n:'Пам\'ять',cats:['ram']},
+ {id:'ssd',n:'Накопичувач',cats:['ssd']},
+ {id:'gpu',n:'Відеокарта',cats:['gpu']},
+ {id:'cool',n:'Охолодження',cats:['cool']},
+ {id:'case',n:'Корпус',cats:['case']},
+ {id:'mon',n:'Монітор',cats:['mon']},
+ {id:'kbms',n:'Клавіатура й мишка',cats:['kb','ms']},
+ {id:'camaud',n:'Вебкамера й навушники',cats:['cam','aud']},
+ {id:'psu',n:'Споживання й живлення',cats:['psu']},
+ {id:'check',n:'Перевірка'},
+ {id:'q',n:'Висновки'},
+ {id:'game',n:'Бонус: підключення'},
+ {id:'end',n:'Готово'}
+];
+const HINTS={
+ cpumb:'Спершу оберіть процесор, потім материнську плату. Сокет процесора й плати має збігатися. Дізнайтеся, чи є в процесорі вбудована графіка й кулер у комплекті.',
+ ram:'Тип пам\'яті (DDR4 чи DDR5) має збігатися з материнською платою. Подумайте про обсяг: чи вистачить його для вашої ситуації.',
+ ssd:'SSD значно швидший за HDD, а NVMe швидший за SATA. Порівняйте обсяг, швидкість і ціну.',
+ gpu:'Чи потрібна вам окрема відеокарта? Якщо у процесора є вбудована графіка, можна обійтися без неї. Окрема відеокарта додає ціну й споживання.',
+ cool:'Перевірте, чи є кулер у комплекті з процесором. Окремий кулер потрібен, якщо процесор «без кулера» або ви хочете тиші.',
+ psu:'Підсумуйте споживання складових і додайте запас 30 %. Блок живлення має покрити й вимогу відеокарти.',
+ case:'Корпус має підходити до розміру (формату) материнської плати: у mATX-корпус плата ATX не поміститься.',
+ mon:'Оберіть монітор під ситуацію: діагональ, чіткість (роздільність) і ціна. Його споживання теж входить у загальне споживання комп\'ютера.',
+ kbms:'Клавіатура й мишка не залежать одна від одної. Подумайте, як довго з ними працюватиме людина: чи потрібна бездротова, тиха чи зручна модель.',
+ camaud:'Вебкамера й навушники потрібні не в кожній ситуації. Перечитайте ситуацію: чи потрібен мікрофон, чи студійний звук.'
+};
+const DETAILS={
+ cpumb:[['Сокет','Гніздо на материнській платі, у яке вставляють процесор. Форма й кількість контактів мають збігатися, інакше процесор не встановиться (AM4, AM5, LGA1700).'],
+  ['Ядра й потоки','Ядра — це «працівники» процесора. Чим їх більше, тим більше завдань він виконує одночасно (монтаж відео, віртуальні машини). Потоки — «віртуальні» ядра, які допомагають завантажити фізичні.'],
+  ['ГГц (частота)','Скільки тактів на секунду виконує ядро. Дві цифри — базова та максимальна (турбо) частота. Більше ГГц зазвичай швидше, але порівнювати можна лише в межах схожих моделей.'],
+  ['TDP, Вт','Приблизна потужність, яку споживає й виділяє у вигляді тепла процесор. За нею обирають кулер і блок живлення.'],
+  ['Вбудована графіка','Мала відеокарта всередині процесора. Якщо вона є, монітор можна підключити без окремої відеокарти. У моделей з літерою F (Intel) і багатьох Ryzen 5000 її немає.'],
+  ['BOX і без кулера','BOX — процесор у коробці з кулером. Модель «без кулера» дешевша, але кулер треба купити окремо.'],
+  ['Формат плати (ATX, mATX)','ATX — велика плата з великою кількістю слотів. mATX — менша й дешевша. Корпус має підходити до формату.'],
+  ['Що таке чипсет','Набір мікросхем на материнській платі, який з\'єднує процесор із пам\'яттю, накопичувачами й роз\'ємами. Від чипсета залежать: скільки на платі слотів M.2, портів USB і SATA, яка швидкість роз\'ємів PCIe і чи можна розганяти процесор.'],
+  ['Як читати назву чипсета','Літера показує клас. A: початковий, найменше можливостей. B: середній, оптимальне співвідношення ціни та можливостей. H: спрощений клас Intel. Z і X: для ентузіастів, із розгоном. Цифри показують серію (покоління) плат.'],
+  ['A520','Найпростіший чипсет для процесорів AMD з сокетом AM4 (Ryzen 5000). Мало швидких роз\'ємів, розгону немає. Дешеві плати для офісу й навчання.'],
+  ['B550','Середній чипсет для AM4. Швидший роз\'єм PCIe 4.0 для відеокарти й SSD, більше портів, можна розганяти процесор. Хороший вибір для нового ПК на AM4.'],
+  ['B650','Середній чипсет для нової платформи AM5 (Ryzen 7000 і 8000). Працює лише з пам\'яттю DDR5 і підтримує швидші SSD та відеокарти.'],
+  ['B760','Середній чипсет для процесорів Intel 12–14 покоління (сокет LGA1700). Є плати і з DDR4, і з DDR5, тому тип пам\'яті дивіться в описі плати. Розгін процесора на B760 не підтримується.'],
+  ['Відеовиходи на платі','На материнській платі є роз\'єми для монітора (HDMI, DisplayPort, VGA, DVI), але вони працюють лише тоді, коли в процесорі є вбудована графіка. Якщо стоїть окрема відеокарта, монітор підключають до неї.'],
+  ['M.2','Слот для малих швидких SSD, які встановлюють прямо на плату. На деяких платах їх 1, на інших 2.'],
+  ['DDR4 / DDR5','Покоління оперативної пам\'яті. Вони різні за формою роз\'єму, тому DDR4 не встановиться в слот DDR5. Покоління визначає материнська плата.']],
+ ram:[['Покоління DDR4 і DDR5','Покоління пам\'яті. Новіше (DDR5) швидше, але вимагає плату саме під нього.'],
+  ['Обсяг, ГБ','Скільки даних одночасно тримає пам\'ять. 8 ГБ — мінімум, 16 ГБ — комфортно для навчання, 32 ГБ — для програмування, монтажу й 3D.'],
+  ['Частота (3200, 5600, 6000)','Скільки мільйонів разів на секунду пам\'ять може передати дані (МТ/с). Більше — швидше.'],
+  ['DIMM і SO-DIMM (форм-фактор)','Форм-фактор — це розмір і форма модуля. DIMM: повнорозмірна планка (≈ 13,3 см) для настільних комп\'ютерів, у слотах материнської плати. SO-DIMM: вдвічі коротша (≈ 6,9 см), для ноутбуків, міні-ПК і моноблоків. Вони мають різну довжину й розташування контактів, тому ноутбучна планка в настільну плату не встановиться. Усі модулі в цьому завданні мають форму DIMM.'],
+  ['Інші форм-фактори','У нових ноутбуків трапляється пам\'ять CAMM2 (плоский модуль, який гвинтиками притискається до плати) або пам\'ять, запаяна просто на материнській платі, яку замінити не можна.'],
+  ['Комплект 2×8 ГБ','Два модулі по 8 ГБ. Вони працюють у двоканальному режимі (одночасно), це швидше, ніж один модуль 16 ГБ.']],
+ ssd:[['SSD і HDD','SSD — без рухомих частин, дуже швидкий і тихий. HDD — із обертовим диском, повільніший і чутливий до струсів, зате дешевший за гігабайт.'],
+  ['SATA і NVMe','Два типи підключення SSD. SATA — до 500 МБ/с. NVMe (M.2) — у кілька разів швидше й ставиться у слот M.2 на платі.'],
+  ['Швидкість, МБ/с','Скільки даних диск читає за секунду. Для HDD її замінюють на швидкість обертання (7200 об/хв).'],
+  ['Обсяг, ГБ і ТБ','1 ТБ = 1000 ГБ. Системі й програмам вистачає 256–480 ГБ, відео й проєкти займають значно більше.']],
+ gpu:[['Відеокарта і вбудована графіка','Відеокарта окремо рахує зображення, ігри й відео. Вбудована графіка робить це гірше, зате безкоштовно й економно.'],
+  ['Відеопам\'ять, ГБ','Пам\'ять самої відеокарти (VRAM). Для великих 3D-сцен і важкого відео її потрібно багато (від 12 ГБ).'],
+  ['GDDR6, GDDR7','Тип відеопам\'яті. Нове покоління швидше.'],
+  ['Споживання, Вт','Скільки енергії бере відеокарта. Вона може споживати більше, ніж решта комп\'ютера разом.'],
+  ['Виходи на монітор','Роз\'єми відеокарти для монітора: HDMI і DisplayPort. Перевірте, чи є такий самий роз\'єм у вашого монітора. Якщо відеокарта є, монітор підключають до неї, а не до материнської плати.'],
+  ['Рекомендований блок живлення','Мінімальна потужність блока живлення, на яку розраховує виробник відеокарти. Менший блок брати не можна.']],
+ cool:[['Баштовий кулер','Радіатор із тепловими трубками й вентилятором. Охолоджує краще за простий кулер з комплекту.'],
+  ['Шум, дБ','Чим менше число, тим тихіше. Нижче 25 дБ — дуже тихо, понад 30 дБ — чутно.'],
+  ['Скільки Вт відводить','Потужність процесора, яку кулер здатен охолодити. Вона має бути не меншою за TDP процесора.'],
+  ['Кулер у комплекті','У процесорі BOX він уже є. Окремий кулер купують, якщо його немає або потрібні тиша чи краще охолодження.']],
+ case:[['ATX і mATX','Формат материнської плати. Корпус ATX вміщає плати ATX і mATX, корпус mATX — лише mATX.'],
+  ['Вентилятори','Прогоняють повітря крізь корпус. Їх кількість впливає на охолодження та шум.'],
+  ['Звукоізоляція','М\'які панелі всередині корпусу приглушують шум вентиляторів і HDD.'],
+  ['Пиловий фільтр','Сітка, яка затримує пил і береже складові.']],
+ mon:[['Діагональ, дюйми (″)','Розмір екрана по діагоналі. 1 дюйм = 2,54 см. 24″ — стандарт для навчання, 27″ — для роботи з кількома вікнами.'],
+  ['Роздільність (FHD, 4K)','Кількість точок на екрані. FHD — 1920×1080, 4K — 3840×2160. Чим більше точок, тим чіткіше зображення, але й більше навантаження на відеокарту.'],
+  ['Частота оновлення, Гц','Скільки разів на секунду оновлюється картинка. 60–75 Гц достатньо для навчання, 144–165 Гц — для динамічних ігор.'],
+  ['Роз\'єми для підключення монітора','HDMI: найпоширеніший цифровий роз\'єм, передає і зображення, і звук. DisplayPort: цифровий, часто для високих частот оновлення й 4K. VGA: старий аналоговий роз\'єм, зображення гірше. DVI: цифровий, без звуку. USB-C: у деяких моніторах передає зображення й заряджає ноутбук. Монітор і комп\'ютер мають мати хоча б один спільний тип роз\'єму. Роз\'єми комп\'ютера дивіться у відеокарти чи на материнській платі (якщо працює вбудована графіка).'],
+  ['Матриця VA і IPS','IPS точніше передає кольори й має ширші кути огляду. VA контрастніша й зазвичай дешевша.'],
+  ['Роз\'єми','HDMI, DisplayPort — цифрові, VGA — старий аналоговий. Потрібно, щоб монітор і ПК мали спільний роз\'єм.'],
+  ['Споживання, Вт','Монітор теж споживає енергію. Додайте її до споживання комп\'ютера.']],
+ kbms:[['Дротова і бездротова','Дротова не потребує батарейок і не затримується. Бездротова (радіо 2,4 ГГц або Bluetooth) зручніша, але живиться від батареї.'],
+  ['Мембранна і механічна','Мембранна — тиха й дешева. Механічна — з окремим перемикачем під кожною клавішею, довговічна, але гучніша.'],
+  ['Оптична мишка','Сенсор читає рух по поверхні світлом. Більшість мишок — оптичні.'],
+  ['Низькопрофільна клавіатура','Клавіатура з низькими клавішами й малим ходом (≈ 1–2 мм замість 3–4 мм) і тонким корпусом, як у ноутбука. Такі клавіші частіше тихіші, а кисть менше піднімається над столом. Спершу може бути незвично друкувати.'],
+  ['Ергономіка','Зручна клавіатура й мишка зменшують втому рук під час тривалої роботи.']],
+ camaud:[['Роздільність відео (720p, 1080p)','Чіткість зображення вебкамери. 720p достатньо для уроків, 1080p — чіткіше для стрімів.'],
+  ['Вбудований мікрофон','Деякі вебкамери й гарнітури мають мікрофон. Для відеодзвінка потрібен мікрофон хоча б в одному пристрої.'],
+  ['Гарнітура і студійні навушники','Гарнітура — навушники з мікрофоном, для спілкування. Студійні — точніше передають звук для запису й монтажу, але без мікрофона.']],
+ psu:[['Потужність, Вт','Скільки енергії блок може віддати всім складовим. Має бути не меншою за споживання комп\'ютера із запасом.'],
+  ['Запас 30 %','Блок працює найкраще, коли навантажений не на повну. Тому до суми споживання додають ще 30 %. Приклад: 200 Вт × 1,3 = 260 Вт.'],
+  ['80 PLUS','Сертифікат ККД блока. Bronze, Silver, Gold показують, яка частка енергії не втрачається на тепло. Gold ефективніший за Bronze.'],
+  ['Вимога відеокарти','Виробник вказує мінімальну потужність БЖ. Блок слабший за цю цифру брати не можна, навіть якщо сума Вт менша.']]
+};
+const TITLE={cpu:'Процесор',mb:'Материнська плата',ram:'Оперативна пам\'ять',ssd:'Накопичувач',gpu:'Відеокарта',cool:'Охолодження процесора',psu:'Блок живлення',case:'Корпус',mon:'Монітор',kb:'Клавіатура',ms:'Мишка',cam:'Вебкамера',aud:'Навушники або гарнітура'};
+let S=load()||fresh();
+if(!S.cid)S.cid=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('c'+Date.now()+Math.random().toString(16).slice(2));
+function fresh(){return{v:1,step:0,name:'',surname:'',sit:null,sel:{},w:'',hours:'',q1:'',first:null,game:{pairs:0,done:false},gdone:[],gerr:0,started:Date.now(),log:{leaves:[],copies:0,srcs:[],stepSec:{}},sent:false,finalR:null,orders:{}};}
+function load(){try{return JSON.parse(localStorage.getItem(KEY));}catch(e){return null;}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+const sit=()=>SIT.find(x=>x.id===S.sit);
+const iGame=()=>STEPS.findIndex(x=>x.id==='game');
+function build(){const b={};for(const k of Object.keys(CAT)){const id=S.sel[k];const it=id&&CAT[k].find(x=>x.id===id);if(!it)return null;b[k]=it;}return b;}
+function partial(){let s=0,w=BASE_W;for(const k of Object.keys(S.sel)){const it=CAT[k].find(x=>x.id===S.sel[k]);if(it){s+=it.price||0;w+=(it.w||0);}}return{sum:s,w:w};}
+function rng(it){const d=it.status==='пошук'?.10:.15;return[Math.round(it.price*(1-d)/50)*50,Math.round(it.price*(1+d)/50)*50];}
+function shuffled(cat){if(!S.orders[cat]){const a=CAT[cat].map(x=>x.id);for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}S.orders[cat]=a;}return S.orders[cat].map(id=>CAT[cat].find(x=>x.id===id));}
+
+/* ============ ЖУРНАЛ ВИХОДІВ ============ */
+let stepStart=Date.now(), leaveAt=null, lastSrc=0;
+const nowRel=()=>Math.round((Date.now()-S.started)/1000);
+function leaveBegin(){if(leaveAt!==null||S.step===0||S.step>=iGame())return;leaveAt=Date.now();}
+function leaveEnd(){if(leaveAt===null)return;const d=Math.round((Date.now()-leaveAt)/1000);const kind=(leaveAt-lastSrc<2500)?'source':'tab';if(d>=1)S.log.leaves.push({t:Math.round((leaveAt-S.started)/1000),d:d,kind:kind,step:STEPS[S.step].id});leaveAt=null;save();}
+document.addEventListener('visibilitychange',()=>{document.hidden?leaveBegin():leaveEnd();});
+window.addEventListener('blur',leaveBegin);
+window.addEventListener('focus',()=>{if(!document.hidden)leaveEnd();});
+['copy','cut','paste'].forEach(ev=>document.addEventListener(ev,()=>{S.log.copies++;save();}));
+document.addEventListener('click',e=>{const a=e.target.closest('a[data-src]');if(a){lastSrc=Date.now();S.log.srcs.push({id:a.dataset.src,t:nowRel()});save();}});
+function stepTime(){const id=STEPS[S.step].id;S.log.stepSec[id]=(S.log.stepSec[id]||0)+Math.round((Date.now()-stepStart)/1000);stepStart=Date.now();}
+
+/* ============ ЕКРАНИ ============ */
+function render(){
+ const st=STEPS[S.step], app=$('#app');
+ $('#stn').textContent=st.n;
+ const nq=STEPS.findIndex(x=>x.id==='q');
+ $('#stc').textContent=S.step>=1&&S.step<=nq?'Крок '+S.step+' з '+nq:'';
+ $('#pg').style.width=Math.round(S.step/(STEPS.length-1)*100)+'%';
+ updSum();
+ $('#bBack').style.visibility=(S.step===0||S.step>=iGame())?'hidden':'visible';
+ app.replaceChildren();
+ window['view_'+st.id](app);
+ updNext();window.scrollTo(0,0);
+}
+function updSum(){
+ const si=sit(),p=partial(),sc=$('#sum');
+ if(si&&S.step>=1&&S.step<iGame()){const over=p.sum>si.budget;sc.className='sum'+(over?' over':'');setH(sc,'<b>'+fmt(p.sum)+' / '+fmt(si.budget)+' грн</b><br>≈ '+Math.round(p.w)+' Вт');}
+ else{sc.className='sum';sc.replaceChildren();}
+}
+function updNext(){
+ const st=STEPS[S.step], b=$('#bNext');let ok=true,label='Далі';
+ if(st.id==='name')ok=S.name.trim().length>1&&S.surname.trim().length>1;
+ else if(st.id==='psu')ok=!!S.sel.psu&&Number(S.w)>0;
+ else if(st.cats)ok=st.cats.every(c=>S.sel[c]);
+ else if(st.id==='q')ok=S.q1.trim().length>=20&&Number(S.hours)>0;
+ else if(st.id==='game')label='Надіслати результат';
+ else if(st.id==='end'){b.style.display='none';return;}
+ if(st.id==='check')label='До висновків';
+ if(st.id==='sit')label='Починаємо';
+ b.style.display='';b.textContent=label;b.disabled=!ok;
+}
+window.view_name=function(a){
+ setH(a,'<h1>Збираю комп\'ютер</h1><p>Ви самі оберете складові комп\'ютера для однієї з життєвих ситуацій. Усе потрібне є на цій сторінці. На завдання — до 20 хвилин.</p>'+
+ '<div class="card"><label class="f" for="sn">Прізвище</label><input type="text" id="sn" autocomplete="family-name" value="'+esc(S.surname)+'"><label class="f" for="nm">Ім\'я</label><input type="text" id="nm" autocomplete="given-name" value="'+esc(S.name)+'"></div>'+
+ '<div class="warn">Сторінка записує, скільки разів ви виходили з неї і на скільки, а також час на кожен крок. Працюйте лише тут. Посилання на ціни й характеристики можна відкривати: це враховується окремо.</div>');
+ $('#sn').oninput=e=>{S.surname=e.target.value;save();updNext();};
+ $('#nm').oninput=e=>{S.name=e.target.value;save();updNext();};
+};
+window.view_sit=function(a){
+ if(!S.sit){S.sit=SIT[Math.floor(Math.random()*SIT.length)].id;save();updSum();}
+ const s=sit();
+ setH(a,'<h2>Ваша ситуація</h2><div class="card sit"><div class="big">'+esc(s.name)+'</div><p>'+esc(s.text)+'</p><p><b>Бюджет: '+fmt(s.budget)+' грн.</b></p></div>'+
+ '<div class="hint"><b>Що треба зробити</b>Складіть комп\'ютер так, щоб він підходив цій людині, усі складові були сумісні, а сума не перевищувала бюджет. Внизу завжди видно, скільки вже витрачено.</div>'+
+ '<p class="small">Ціни орієнтовні, станом на '+PRICE_DATE+'. Біля кожної складової є кнопка для перевірки ціни на Hotline.</p>');
+};
+function ico(cat,it){
+ const c=(b)=>'<svg viewBox="0 0 80 80" width="72" height="72" aria-hidden="true">'+b+'</svg>';
+ const K='#445',G='#2e7d4f',Y='#d4a017',L='#cfd4dc';
+ const fan=(x,y,r)=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="#222" stroke="#aab" stroke-width="1.5"/><path d="M'+x+' '+y+'l'+r*.7+' -'+r*.4+'M'+x+' '+y+'l-'+r*.7+' -'+r*.4+'M'+x+' '+y+'l0 '+r*.8+'" stroke="#9ab" stroke-width="2.5" stroke-linecap="round"/>';
+ const none='<rect x="12" y="20" width="56" height="40" rx="6" fill="none" stroke="#99a" stroke-width="2" stroke-dasharray="5 4"/><path d="M28 32l24 16M52 32L28 48" stroke="#99a" stroke-width="3" stroke-linecap="round"/>';
+ if((cat==='cam'||cat==='aud')&&it.price===0)return c(none);
+ let t=cat;if(cat==='gpu'&&it.id==='gpu_int')t='cpu';
+ switch(t){
+ case'cpu':{let p='';for(let i=0;i<6;i++){p+='<rect x="'+(22+i*7)+'" y="12" width="3" height="6" fill="'+Y+'"/><rect x="'+(22+i*7)+'" y="62" width="3" height="6" fill="'+Y+'"/><rect x="12" y="'+(22+i*7)+'" width="6" height="3" fill="'+Y+'"/><rect x="62" y="'+(22+i*7)+'" width="6" height="3" fill="'+Y+'"/>';}
+  return c(p+'<rect x="18" y="18" width="44" height="44" rx="4" fill="'+L+'" stroke="'+K+'" stroke-width="2"/><rect x="28" y="28" width="24" height="24" rx="3" fill="#8d96a6"/>');}
+ case'mb':return c('<rect x="12" y="8" width="56" height="64" rx="4" fill="'+G+'" stroke="#1d5a38" stroke-width="2"/><rect x="20" y="16" width="20" height="20" fill="'+L+'"/><rect x="48" y="14" width="4" height="30" fill="#111"/><rect x="55" y="14" width="4" height="30" fill="#111"/><rect x="18" y="50" width="40" height="4" fill="#111"/><rect x="18" y="60" width="22" height="3" fill="#111"/><rect x="14" y="14" width="3" height="3" fill="#fff"/>');
+ case'ram':return c('<rect x="6" y="26" width="68" height="28" rx="2" fill="'+G+'" stroke="#1d5a38" stroke-width="2"/><rect x="12" y="31" width="10" height="12" fill="#222"/><rect x="26" y="31" width="10" height="12" fill="#222"/><rect x="40" y="31" width="10" height="12" fill="#222"/><rect x="54" y="31" width="10" height="12" fill="#222"/><rect x="8" y="50" width="64" height="3" fill="'+Y+'"/>');
+ case'ssd':if(it.type==='HDD')return c('<rect x="12" y="12" width="56" height="56" rx="5" fill="#9aa1ad" stroke="'+K+'" stroke-width="2"/><circle cx="38" cy="40" r="20" fill="#cfd4dc" stroke="#667" stroke-width="2"/><circle cx="38" cy="40" r="5" fill="#667"/><path d="M60 18L44 38" stroke="#444" stroke-width="3" stroke-linecap="round"/>');
+  if(it.type==='NVMe')return c('<rect x="6" y="30" width="68" height="20" rx="2" fill="'+G+'" stroke="#1d5a38" stroke-width="2"/><rect x="14" y="34" width="12" height="12" fill="#222"/><rect x="30" y="34" width="12" height="12" fill="#222"/><rect x="8" y="46" width="8" height="3" fill="'+Y+'"/><circle cx="70" cy="40" r="2.5" fill="#fff"/>');
+  return c('<rect x="12" y="16" width="56" height="48" rx="5" fill="#2d3340" stroke="#99a" stroke-width="2"/><rect x="20" y="24" width="30" height="8" fill="#6b9cff"/><rect x="20" y="36" width="20" height="4" fill="#99a"/>');
+ case'gpu':return c('<rect x="6" y="22" width="68" height="36" rx="4" fill="#2d3340" stroke="'+K+'" stroke-width="2"/>'+fan(26,40,11)+fan(54,40,11)+'<rect x="2" y="26" width="5" height="28" fill="#aab"/><rect x="20" y="58" width="36" height="4" fill="'+Y+'"/>');
+ case'cool':{let f='';for(let i=0;i<7;i++)f+='<rect x="'+(20+i*6)+'" y="12" width="3" height="40" fill="#aab"/>';return c('<rect x="16" y="54" width="48" height="8" rx="2" fill="#b87333"/>'+f+'<rect x="14" y="34" width="52" height="3" fill="#b87333"/>'+fan(40,36,12));}
+ case'psu':return c('<rect x="10" y="18" width="60" height="44" rx="4" fill="#9aa1ad" stroke="'+K+'" stroke-width="2"/>'+fan(34,40,13)+'<rect x="56" y="30" width="10" height="20" fill="#222"/><path d="M68 34h8M68 40h8M68 46h8" stroke="#222" stroke-width="2"/>');
+ case'case':{const tall=it.ff==='ATX';const y=tall?6:16,h=tall?68:58;return c('<rect x="24" y="'+y+'" width="32" height="'+h+'" rx="3" fill="#2d3340" stroke="#99a" stroke-width="2"/><rect x="29" y="'+(y+6)+'" width="22" height="3" fill="#99a"/><circle cx="40" cy="'+(y+h-14)+'" r="5" fill="#6b9cff"/>');}
+ case'mon':{const big=it.size>=27;return c('<rect x="'+(big?6:10)+'" y="12" width="'+(big?68:60)+'" height="'+(big?42:38)+'" rx="3" fill="#222" stroke="#99a" stroke-width="2"/><rect x="'+(big?10:14)+'" y="16" width="'+(big?60:52)+'" height="'+(big?34:30)+'" fill="'+(it.res==='4K'?'#8ad':'#6b9cff')+'"/><rect x="36" y="54" width="8" height="10" fill="#99a"/><rect x="26" y="64" width="28" height="4" rx="2" fill="#99a"/>');}
+ case'kb':{let k='';for(let r=0;r<3;r++)for(let i=0;i<9;i++)k+='<rect x="'+(10+i*6.8)+'" y="'+(30+r*8)+'" width="5" height="5.5" rx="1" fill="#e6e9ef"/>';return c('<rect x="6" y="26" width="68" height="32" rx="4" fill="#4a5163" stroke="#99a" stroke-width="2"/>'+k);}
+ case'ms':return c('<path d="M40 12c-12 0-16 10-16 22v14c0 10 6 18 16 18s16-8 16-18V34c0-12-4-22-16-22z" fill="#4a5163" stroke="#99a" stroke-width="2"/><path d="M40 12v26M24 38h32" stroke="#99a" stroke-width="2"/>');
+ case'cam':return c('<rect x="20" y="16" width="40" height="34" rx="6" fill="#4a5163" stroke="#99a" stroke-width="2"/><circle cx="40" cy="33" r="11" fill="#222" stroke="#aab" stroke-width="2"/><circle cx="40" cy="33" r="4" fill="#6b9cff"/><rect x="34" y="50" width="12" height="8" fill="#99a"/><rect x="24" y="58" width="32" height="4" rx="2" fill="#99a"/>');
+ case'aud':return c('<path d="M16 46V38c0-14 10-24 24-24s24 10 24 24v8" fill="none" stroke="#99a" stroke-width="4" stroke-linecap="round"/><rect x="10" y="40" width="14" height="22" rx="5" fill="#4a5163" stroke="#99a" stroke-width="2"/><rect x="56" y="40" width="14" height="22" rx="5" fill="#4a5163" stroke="#99a" stroke-width="2"/>'+(it.mic?'<path d="M16 62q4 10 18 8" fill="none" stroke="#99a" stroke-width="2.5"/><circle cx="36" cy="70" r="3" fill="#6b9cff"/>':''));
+ }
+ return c(none);
+}
+function card(cat,it){
+ const sel=S.sel[cat]===it.id, r=rng(it);
+ const pr=it.price===0?'0 грн':'≈ '+fmt(it.price)+' грн';
+ const links=it.q?'<div class="src"><div class="rg">Ціна в магазинах: <b>'+fmt(r[0])+'–'+fmt(r[1])+' грн</b> ('+(it.status==='оцінка'?'орієнтовно, ':'')+'станом на '+PRICE_DATE+')</div><a class="hl" data-src="'+it.id+'" target="_blank" rel="noopener" href="https://hotline.ua/ua/sr/?q='+encodeURIComponent(it.q)+'">Перевірити ціну й характеристики на Hotline ↗</a></div>':'';
+ const d=document.createElement('div');d.className='optw'+(sel?' sel':'');
+ setH(d,'<button type="button" class="opt" aria-pressed="'+sel+'"><div class="row"><div class="ph">'+ico(cat,it)+'</div><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:8px"><span class="nm">'+esc(it.name)+'</span><span class="pr">'+pr+'</span></div><ul>'+it.specs.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div></button>'+
+ (it.more&&it.more.length?'<details class="more"><summary>Детальніше</summary><ul>'+it.more.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></details>':'')+links);
+ d.querySelector('.opt').onclick=()=>{S.sel[cat]=it.id;save();rerender();};
+ return d;
+}
+function rerender(){const y=window.scrollY;const st=STEPS[S.step],app=$('#app');app.replaceChildren();window['view_'+st.id](app);updNext();updSum();window.scrollTo(0,y);}
+function catView(a,cat){const h=document.createElement('div');h.className='sub';h.textContent=TITLE[cat];a.appendChild(h);shuffled(cat).forEach(it=>a.appendChild(card(cat,it)));}
+function stepHead(a,id){
+ let det='';
+ if(DETAILS[id])det='<details class="det"><summary>Детальніше про характеристики</summary><dl>'+DETAILS[id].map(x=>'<dt>'+esc(x[0])+'</dt><dd>'+esc(x[1])+'</dd>').join('')+'</dl></details>';
+ a.insertAdjacentHTML('beforeend','<div class="hint"><b>На що звернути увагу</b>'+esc(HINTS[id])+det+'</div>');const s=sit();if(s)a.insertAdjacentHTML('beforeend','<p class="small"><span class="pill">'+esc(s.name)+'</span></p>');}
+['cpumb','ram','ssd','gpu','cool','case','mon','kbms','camaud'].forEach(id=>{window['view_'+id]=function(a){stepHead(a,id);STEPS.find(x=>x.id===id).cats.forEach(c=>catView(a,c));};});
+window.view_psu=function(a){
+ stepHead(a,'psu');
+ let rows='<tr><td>Материнська плата й вентилятори корпусу</td><td>'+BASE_W+' Вт</td></tr>';
+ [['cpu','Процесор'],['gpu','Відеокарта'],['ram','Пам\'ять'],['ssd','Накопичувач'],['cool','Кулер'],['mon','Монітор']].forEach(([k,t])=>{const it=S.sel[k]&&CAT[k].find(x=>x.id===S.sel[k]);if(it)rows+='<tr><td>'+t+': '+esc(it.name)+'</td><td>'+it.w+' Вт</td></tr>';});
+ a.insertAdjacentHTML('beforeend','<div class="card"><b>Споживання складових</b><table class="t">'+rows+'</table></div>'+
+ '<div class="card"><label class="f" for="wv">Скільки Вт споживає ваш комп\'ютер разом? Додайте всі числа з таблиці.</label><input type="number" inputmode="numeric" id="wv" min="0" value="'+esc(S.w)+'"><p class="small" id="wneed"></p></div>');
+ const wn=()=>{const w=Number(S.w);$('#wneed').textContent=w>0?'З запасом 30 % потрібен блок живлення від '+Math.ceil(w*1.3)+' Вт.':'';};
+ $('#wv').oninput=e=>{S.w=e.target.value;save();wn();updNext();};
+ wn();catView(a,'psu');
+};
+function reqs(b){return sit().reqs.map(r=>({t:r.t,ok:!!r.f(b)}));}
+function scoreAll(b){
+ const e=compat(b), c=e.length===0?3:e.length===1?2:e.length===2?1:0;
+ const bud=total(b)<=sit().budget?1:0;
+ const rq=reqs(b), rs=Math.min(3,Math.round(rq.filter(x=>x.ok).length/rq.length*3));
+ const W=totalW(b), w=Number(S.w), en=(w>0&&Math.abs(w-W)<=W*.1)?1:0;
+ return{compat:c,budget:bud,sit:rs,energy:en,errs:e,rq:rq,W:W};
+}
+window.view_check=function(a){
+ const b=build();
+ if(b)saveDraft();
+ if(!b){setH(a,'<div class="warn">Не всі складові обрано. Поверніться назад.</div>');return;}
+ const sc=scoreAll(b), tot=total(b), bu=sit().budget;
+ if(!S.first){S.first={sel:Object.assign({},S.sel),w:S.w,score:{compat:sc.compat,budget:sc.budget,sit:sc.sit,energy:sc.energy},total:tot};save();}
+ let h='<h2>Перевірка збірки</h2><div class="hint"><b>Що далі</b>Якщо є червоні позначки, поверніться назад і виправте. Потім знову перейдіть сюди. Перша спроба записується окремо.</div>';
+ h+='<div class="card"><b>Сумісність</b>';
+ if(!sc.errs.length)h+='<div class="chk ok"><div class="m">✓</div><div>Усі складові сумісні</div></div>';
+ else sc.errs.forEach(x=>{h+='<div class="chk no"><div class="m">✗</div><div>'+esc(x.t)+'</div></div>';});
+ h+='</div><div class="card"><b>Бюджет</b><div class="chk '+(tot<=bu?'ok':'no')+'"><div class="m">'+(tot<=bu?'✓':'✗')+'</div><div>Витрачено '+fmt(tot)+' грн із '+fmt(bu)+' грн'+(tot>bu?'. Перевищено на '+fmt(tot-bu)+' грн':'')+'</div></div></div>';
+ h+='<div class="card"><b>Відповідність ситуації</b>';
+ sc.rq.forEach(x=>{h+='<div class="chk '+(x.ok?'ok':'no')+'"><div class="m">'+(x.ok?'✓':'✗')+'</div><div>'+esc(x.t.charAt(0).toUpperCase()+x.t.slice(1))+'</div></div>';});
+ h+='</div><div class="card"><b>Споживання</b><div class="chk '+(sc.energy?'ok':'no')+'"><div class="m">'+(sc.energy?'✓':'✗')+'</div><div>'+(sc.energy?'Підсумок споживання записано правильно':'Підсумок споживання відрізняється від суми складових більше ніж на 10 %. Перерахуйте його на кроці «Споживання й живлення».')+'</div></div></div>';
+ setH(a,h);
+};
+window.view_q=function(a){
+ const w=Number(S.w)||0;
+ setH(a,'<h2>Два запитання</h2>'+
+ '<div class="card"><label class="f" for="q1">1. Поясніть, чому ви обрали саме такі процесор, пам\'ять і накопичувач для цієї ситуації. Використайте числа зі своєї збірки (від 2 речень).</label><textarea id="q1">'+esc(S.q1)+'</textarea></div>'+
+ '<div class="card"><label class="f" for="hv">2. Зарядна станція має 500 Вт·год енергії. Скільки годин вона живитиме ваш комп\'ютер (разом із монітором), якщо він споживає '+(w>0?w:'…')+' Вт? Запишіть у годинах, можна з десятковою комою.</label><input type="text" inputmode="decimal" id="hv" value="'+esc(S.hours)+'"></div>');
+ let qt=null;const qs=()=>{clearTimeout(qt);qt=setTimeout(saveDraft,2500);};
+ $('#q1').oninput=e=>{S.q1=e.target.value;save();updNext();qs();};
+ $('#hv').oninput=e=>{S.hours=e.target.value.replace(',','.');save();updNext();qs();};
+ $('#q1').onblur=saveDraft;$('#hv').onblur=saveDraft;
+};
+/* ----- бонус: що куди під'єднати (реалістична схема плати) ----- */
+const R_=(x,y,w,h,f,e)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+f+'" '+(e||'')+'/>';
+const GRN='#2e7d4f',BLK='#161616',WHT='#f1ede0',GLD='#d4a017';
+const TG={
+ io:{n:'Задня панель',hint:'Задня панель плати. Тут роз\'єми для периферії: HDMI (чорний трапецієподібний) для монітора, сині USB, мережевий роз\'єм і кольорові аудіогнізда. Монітор підключають сюди лише тоді, коли відеокарти немає й працює вбудована графіка процесора.',bb:[10,30,50,150],lb:[12,192,'Задня панель'],
+  d:()=>R_(10,30,50,150,'#9aa0aa','rx="3" stroke="#555"')+'<path d="M16 42h28l-3 8H19z" fill="#111"/>'+[0,1,2,3].map(i=>R_(16,60+i*14,20,9,'#1565c0','rx="1"')).join('')+R_(38,62,16,20,'#555','rx="2"')+[['#2e7d4f',24],['#1565c0',34],['#d81b60',44]].map(a=>'<circle cx="'+a[1]+'" cy="150" r="4.5" fill="'+a[0]+'"/>').join('')},
+ vrm:{n:'Радіатор живлення процесора',hint:'Чорний радіатор біля процесора охолоджує мікросхеми, які подають живлення процесору (VRM). Підключати до нього нічого не треба.',bb:[66,52,42,96],decoy:1,
+  d:()=>R_(66,52,42,96,'#2b2f36','rx="3" stroke="#111"')+[0,1,2,3,4,5,6,7].map(i=>R_(70,58+i*11,34,3,'#4a5163')).join('')},
+ eps:{n:'8 pin CPU (EPS)',hint:'Роз\'єм 8 pin (EPS): два ряди по чотири контакти. Він дає додаткове живлення процесору. Кабель від блока живлення має відповідний ключ-виступ, тому вставляється лише одним боком.',bb:[116,12,66,28],lb:[186,30,'8 pin CPU'],
+  d:()=>R_(118,14,60,24,WHT,'rx="2" stroke="#999"')+[0,1,2,3].map(i=>[0,1].map(j=>R_(122+i*14,18+j*10,10,8,'#333')).join('')).join('')+R_(118,12,60,3,'#bbb')},
+ socket:{n:'Сокет процесора',hint:'Сокет процесора: квадрат зі сталевою рамкою та сіткою контактів. У кутку є ключ-трикутник: такий самий позначений на процесорі, тож їх суміщають. Процесор лише кладуть, не натискаючи. Тип сокета (AM4, AM5, LGA1700) має збігатися.',bb:[112,52,96,96],lb:[114,160,'Сокет CPU'],
+  d:()=>R_(114,54,92,92,'#aeb4be','rx="3" stroke="#555"')+R_(124,64,72,72,'url(#pins)','stroke="#8a6d10"')+'<path d="M124 64h16l-16 16z" fill="#fff"/>'+R_(202,58,4,84,'#777')},
+ cpufan:{n:'CPU_FAN',hint:'Колодка CPU_FAN: чотири штирьки в ряд і ключ, щоб не переплутати бік. Сюди підключають вентилятор кулера процесора.',bb:[208,56,42,22],lb:[212,90,'CPU_FAN'],
+  d:()=>R_(212,60,34,12,WHT,'rx="1" stroke="#999"')+[0,1,2,3].map(i=>R_(215+i*7,63,4,8,'#222')).join('')+R_(212,57,8,3,'#999')},
+ dimm:{n:'Слоти оперативної пам\'яті (DIMM)',hint:'Довгі слоти DIMM для пам\'яті. Усередині слота є зміщений виріз (ключ), який збігається з вирізом на модулі: у DDR4 і DDR5 він у різних місцях. По краях защіпки: після встановлення модуля вони клацають і фіксують його.',bb:[256,24,88,172],lb:[262,210,'Слоти ОЗП'],
+  d:()=>[0,1,2,3].map(i=>{const x=262+i*20;return R_(x,30,14,160,BLK,'rx="2"')+R_(x+5,34,4,152,'#2a2a2a')+R_(x,30+66,14,3,GRN)+R_(x-2,26,18,6,'#cfd2d8','rx="1"')+R_(x-2,188,18,6,'#cfd2d8','rx="1"');}).join('')},
+ chipset:{n:'Чипсет',hint:'Радіатор чипсета. Чипсет керує більшістю роз\'ємів плати: USB, SATA, додатковими слотами. Від нього залежать кількість і швидкість цих роз\'ємів. Підключати до нього нічого не треба.',bb:[250,212,62,64],lb:[258,248,'Чипсет'],decoy:1,
+  d:()=>R_(252,214,58,60,'#3b4350','rx="4" stroke="#111"')+[0,1,2,3,4].map(i=>R_(257,220+i*10,48,3,'#59627a')).join('')},
+ m2:{n:'Слот M.2',hint:'Слот M.2: короткий слот із ключем (виріз) і гвинтиком-стійкою на протилежному кінці. Малий швидкий SSD вставляють у слот під кутом, притискають і закріплюють гвинтиком. Кабелі не потрібні.',bb:[82,162,116,24],lb:[84,160,'M.2'],
+  d:()=>R_(84,168,100,12,BLK,'rx="1"')+R_(112,168,3,12,GRN)+'<circle cx="192" cy="174" r="4.5" fill="'+GLD+'" stroke="#8a6d10"/>'},
+ pcie16:{n:'PCIe x16',hint:'Слот PCIe x16: найдовший слот плати, у ньому є ключ-виріз і защіпка на кінці. Сюди вставляють відеокарту. Інші слоти коротші, відеокарта в них не поміститься.',bb:[10,228,236,30],lb:[16,274,'PCIe x16'],
+  d:()=>R_(16,238,208,12,BLK,'rx="1"')+R_(60,238,3,12,GRN)+R_(226,234,12,20,'#d9d9d9','rx="2"')},
+ pcie1:{n:'PCIe x1',hint:'Слот PCIe x1: короткий слот для додаткових плат (звукова, мережева, Wi-Fi). Відеокарту сюди не ставлять.',bb:[10,280,100,24],lb:[16,314,'PCIe x1'],decoy:1,
+  d:()=>R_(16,286,62,10,BLK,'rx="1"')+R_(40,286,3,10,GRN)+R_(80,283,8,16,'#d9d9d9','rx="2"')},
+ atx24:{n:'24 pin ATX',hint:'Широка дворяда колодка на 24 контакти з защіпкою збоку. Це головне живлення материнської плати. Найбільший кабель від блока живлення.',bb:[314,212,38,114],lb:[348,338,'24 pin ATX',1],
+  d:()=>R_(322,220,26,96,WHT,'rx="2" stroke="#999"')+[0,1].map(j=>[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>R_(325+j*11,223+i*7.7,8,5.5,'#333')).join('')).join('')+R_(318,218,4,100,'#bbb')},
+ sata:{n:'Порти SATA',hint:'Порти SATA: невеликі роз\'єми літерою «Г» (ключ). Сюди підключають кабель даних до накопичувача SATA (SSD чи HDD). Живлення до накопичувача йде окремим кабелем від блока живлення.',bb:[244,342,70,54],lb:[250,346,'SATA'],
+  d:()=>[0,1,2].map(i=>{const y=352+i*14;return R_(250,y,40,9,BLK,'rx="1"')+R_(250,y+6,12,5,BLK,'rx="1"')+R_(264,y+3,22,2,'#888');}).join('')},
+ fpanel:{n:'F_PANEL',hint:'Колодка F_PANEL: два ряди штирьків (одного бракує як ключа). Сюди підключають кнопки й індикатори корпусу: живлення, перезавантаження, світлодіоди. Розташування штирьків дивіться в інструкції до плати.',bb:[120,390,110,30],lb:[124,386,'F_PANEL'],
+  d:()=>R_(124,392,102,22,'#222','rx="2"')+[0,1,2,3,4,5,6,7,8,9].map(i=>[0,1].map(j=>(i===9&&j===0)?'':R_(128+i*9,396+j*8,6,6,GLD)).join('')).join('')},
+ cmos:{n:'Батарейка CR2032',hint:'Батарейка CR2032 у тримачі зберігає налаштування BIOS і час, поки комп\'ютер вимкнено. Її вже встановлено, нічого підключати не треба.',bb:[44,320,44,52],lb:[44,384,'CR2032'],decoy:1,
+  d:()=>'<circle cx="66" cy="342" r="18" fill="#c0c4cc" stroke="#667" stroke-width="2"/><text x="66" y="347" font-size="14" font-weight="700" text-anchor="middle" fill="#445">+</text>'+R_(42,330,4,24,'#888','rx="1"')}
+};
+const GITEMS=[
+ {id:'cpu',n:'Процесор',t:'socket',ok:'Процесор стає в сокет: ключ-трикутник на процесорі збігається з трикутником у сокеті.'},
+ {id:'ram',n:'Модуль оперативної пам\'яті',t:'dimm',ok:'Модуль вставляють у слот DIMM так, щоб виріз збігся з ключем у слоті. Защіпки клацають.'},
+ {id:'gpu',n:'Відеокарта',t:'pcie16',ok:'Відеокарта стає в довгий слот PCIe x16 до клацання защіпки.'},
+ {id:'m2',n:'SSD формату M.2',t:'m2',ok:'SSD M.2 вставляють у слот під кутом і закріплюють гвинтиком.'},
+ {id:'sata',n:'Кабель даних SATA',t:'sata',ok:'Кабель даних SATA йде від накопичувача до порту SATA на платі. Роз\'єм має Г-подібну форму.'},
+ {id:'atx',n:'Кабель 24 pin від блока живлення',t:'atx24',ok:'Колодка 24 pin дає головне живлення материнській платі.'},
+ {id:'epsc',n:'Кабель 8 pin CPU від блока живлення',t:'eps',ok:'Роз\'єм 8 pin дає додаткове живлення процесору.'},
+ {id:'fan',n:'Кабель вентилятора кулера',t:'cpufan',ok:'Вентилятор кулера підключають до колодки CPU_FAN біля процесора.'},
+ {id:'fp',n:'Роз\'єми кнопки живлення й індикаторів корпусу',t:'fpanel',ok:'Кабелі з передньої панелі корпусу підключають до F_PANEL.'}
+];
+function cabIco(id){
+ const w=(c,x1,y1,x2,y2)=>'<path d="M'+x1+' '+y1+'L'+x2+' '+y2+'" stroke="'+c+'" stroke-width="3" stroke-linecap="round"/>';
+ const svg=b=>'<svg viewBox="0 0 80 80" aria-hidden="true">'+b+'</svg>';
+ switch(id){
+ case'cpu':return ico('cpu',{});case'ram':return ico('ram',{});case'gpu':return ico('gpu',{id:'g'});case'm2':return ico('ssd',{type:'NVMe'});
+ case'sata':return svg(R_(10,26,34,14,'#c62828','rx="2"')+R_(10,34,10,12,'#c62828','rx="2"')+'<path d="M44 33C62 33 62 62 76 62" stroke="#c62828" stroke-width="5" fill="none"/>');
+ case'atx':return svg(R_(24,6,32,44,WHT,'rx="2" stroke="#999"')+[0,1].map(j=>[0,1,2,3,4,5,6,7].map(i=>R_(28+j*14,10+i*5,10,3.5,'#333')).join('')).join('')+['#f9a825','#222','#c62828','#222','#1565c0','#2e7d32'].map((c,k)=>w(c,28+k*4,50,26+k*5,72)).join(''));
+ case'epsc':return svg(R_(12,18,56,26,WHT,'rx="2" stroke="#999"')+[0,1,2,3].map(i=>[0,1].map(j=>R_(16+i*13,22+j*10,9,7,'#333')).join('')).join('')+[0,1,2,3].map(i=>w(i%2?'#222':'#f9a825',20+i*13,44,20+i*13,70)).join(''));
+ case'fan':return svg(R_(20,18,40,18,WHT,'rx="2" stroke="#999"')+[0,1,2,3].map(i=>R_(24+i*9,22,6,10,'#333')).join('')+['#222','#f9a825','#2e7d32','#1565c0'].map((c,i)=>w(c,27+i*9,36,22+i*12,70)).join(''));
+ case'fp':return svg(R_(8,18,20,20,'#2e7d4f','rx="2"')+R_(30,18,20,20,'#1565c0','rx="2"')+R_(52,18,20,20,'#c62828','rx="2"')+[18,40,62].map((x,i)=>w(['#2e7d4f','#1565c0','#c62828'][i],x,38,x+(i-1)*4,70)).join(''));
+ }return '';
+}
+function placed(id){
+ const it=GITEMS.find(x=>x.t===id);if(!it)return'';
+ switch(it.id){
+ case'cpu':return R_(126,66,68,68,'#d0d4db','rx="4" stroke="#555"')+R_(140,80,40,40,'#8d96a6')+'<text x="160" y="106" font-size="11" font-weight="700" text-anchor="middle" fill="#fff">CPU</text><path d="M126 66h14l-14 14z" fill="#fff"/>';
+ case'ram':return [1,3].map(i=>{const x=262+i*20;return R_(x,28,14,156,GRN,'stroke="#1d5a38"')+[0,1,2,3].map(k=>R_(x+2,40+k*34,10,22,'#222')).join('')+R_(x,181,14,3,GLD);}).join('');
+ case'gpu':return R_(10,204,236,50,'#2d3340','rx="4" stroke="#99a"')+'<circle cx="72" cy="229" r="19" fill="#111" stroke="#aab" stroke-width="2"/><circle cx="150" cy="229" r="19" fill="#111" stroke="#aab" stroke-width="2"/><path d="M72 229l10-6M72 229l-10-6M72 229v12M150 229l10-6M150 229l-10-6M150 229v12" stroke="#9ab" stroke-width="3" stroke-linecap="round"/>'+R_(4,206,6,46,'#bbb')+R_(190,198,30,6,'#222');
+ case'm2':return R_(86,164,100,18,GRN,'rx="2" stroke="#1d5a38"')+R_(100,167,22,12,'#222')+R_(128,167,22,12,'#222')+'<circle cx="192" cy="174" r="4.5" fill="'+GLD+'"/>';
+ case'sata':return R_(250,350,40,9,'#c62828','rx="1"')+'<path d="M250 355C220 355 215 385 180 390" stroke="#c62828" stroke-width="5" fill="none"/>';
+ case'atx':return R_(320,216,30,104,WHT,'rx="2" stroke="#999"')+[0,1].map(j=>[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>R_(325+j*11,223+i*7.7,8,5.5,'#333')).join('')).join('')+['#f9a825','#222','#c62828','#222','#1565c0','#2e7d32'].map((c,k)=>'<path d="M322 '+(228+k*14)+'C300 '+(228+k*14)+' 296 '+(238+k*14)+' 280 '+(246+k*12)+'" stroke="'+c+'" stroke-width="3" fill="none"/>').join('');
+ case'epsc':return R_(116,10,64,30,WHT,'rx="2" stroke="#999"')+[0,1,2,3].map(i=>[0,1].map(j=>R_(121+i*14,16+j*10,10,8,'#333')).join('')).join('')+[0,1,2,3].map(i=>'<path d="M'+(126+i*14)+' 10V0" stroke="'+(i%2?'#222':'#f9a825')+'" stroke-width="3"/>').join('');
+ case'fan':return R_(210,56,38,22,WHT,'rx="2" stroke="#999"')+['#222','#f9a825','#2e7d32','#1565c0'].map((c,i)=>'<path d="M'+(215+i*7)+' 56C'+(215+i*7)+' 40 230 40 244 30" stroke="'+c+'" stroke-width="2.5" fill="none"/>').join('');
+ case'fp':return R_(124,390,34,26,'#1b5e20','rx="2"')+R_(160,390,34,26,'#1565c0','rx="2"')+R_(196,390,30,26,'#c62828','rx="2"')+'<text x="141" y="407" font-size="9" fill="#fff" text-anchor="middle">PWR</text><text x="177" y="407" font-size="9" fill="#fff" text-anchor="middle">RST</text><text x="211" y="407" font-size="9" fill="#fff" text-anchor="middle">LED</text>';
+ }return '';
+}
+let gsel=null;
+function gameDone(){return S.gdone.length>=7&&S.gerr<=3;}
+window.view_game=function(a){
+ let svg='<svg viewBox="0 0 360 440" width="100%" role="img" aria-label="Материнська плата" style="max-width:440px;display:block;margin:0 auto"><defs><pattern id="pins" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#b8bcc6"/><circle cx="2.5" cy="2.5" r="1.3" fill="'+GLD+'"/></pattern></defs><rect x="4" y="4" width="352" height="432" rx="10" fill="'+GRN+'" stroke="#1d5a38" stroke-width="2"/>'+[[14,14],[346,14],[14,426],[346,426],[110,300]].map(c=>'<circle cx="'+c[0]+'" cy="'+c[1]+'" r="3.5" fill="#cfd2d8"/>').join('');
+ for(const id in TG){const g=TG[id];const bb=g.bb;
+  svg+='<g class="tg" data-t="'+id+'" style="cursor:pointer">'+R_(bb[0],bb[1],bb[2],bb[3],'transparent')+g.d();
+  if(g.lb)svg+='<text x="'+g.lb[0]+'" y="'+g.lb[1]+'" font-size="9" font-weight="700" fill="#fff"'+(g.lb[3]===1?' text-anchor="end"':'')+'>'+g.lb[2]+'</text>';
+  svg+='<g class="ov" data-t="'+id+'"></g></g>';}
+ svg+='</svg>';
+ setH(a,'<h2>Бонус: що куди під\'єднати</h2><div class="hint"><b>Як грати</b>Торкніться деталі чи кабелю внизу, потім його місця на платі. Торкніться будь-якого роз\'єму, щоб прочитати, що це. Форма слота допомагає знайти пару: ключі, защіпки, кількість контактів. Бонус 1 бал: щонайменше 7 на місці й не більше 3 помилок. Крок можна пропустити.</div><div class="card" id="ghint">Торкніться роз\'єму на платі, щоб побачити підказку.</div><div class="card">'+svg+'</div><div class="card"><b>Деталі й кабелі</b><div id="gtray" class="gtray"></div></div><p class="small" id="gmsg"></p>');
+ const tray=()=>{const t=$('#gtray');t.replaceChildren();GITEMS.filter(x=>!S.gdone.includes(x.id)).forEach(x=>{const bt=document.createElement('button');bt.type='button';bt.className='gb'+(gsel===x.id?' sel':'');setH(bt,'<span class="gi">'+cabIco(x.id)+'</span><span>'+esc(x.n)+'</span>');bt.onclick=()=>{gsel=x.id;tray();$('#gmsg').textContent='Тепер торкніться місця на платі.';};t.appendChild(bt);});
+  if(S.gdone.length===GITEMS.length)$('#gmsg').textContent='Усе на місці!';};
+ const place=id=>{const ov=document.querySelector('.ov[data-t="'+id+'"]');if(S.gdone.includes(GITEMS.find(x=>x.t===id).id))ov.insertAdjacentHTML('beforeend',placed(id));};
+ document.querySelectorAll('.tg').forEach(g=>{g.onclick=()=>{
+  const id=g.dataset.t;
+  if(!gsel){setH($('#ghint'),'<b>'+esc(TG[id].n)+'</b><br>'+esc(TG[id].hint));return;}
+  const it=GITEMS.find(x=>x.id===gsel);
+  if(it.t===id){S.gdone.push(it.id);gsel=null;S.game.pairs=S.gdone.length;S.game.done=gameDone();save();place(id);tray();setH($('#ghint'),'<b>Правильно!</b><br>'+esc(it.ok));$('#gmsg').textContent='';}
+  else{S.gerr++;S.game.done=gameDone();save();$('#gmsg').textContent='';setH($('#ghint'),'<b>Не сюди.</b> «'+esc(it.n)+'» не підключається до «'+esc(TG[id].n)+'».<br>'+esc(TG[id].hint));}
+ };});
+ S.gdone.forEach(id=>place(GITEMS.find(x=>x.id===id).t));tray();
+};
+function resultObj(status){
+ const b=build(), sc=scoreAll(b), w=Number(S.w), h=Number(S.hours);
+ const hoursOk=(w>0&&Math.abs(h-500/w)<=0.2)?1:0;
+ const leaves=S.log.leaves, tabs=leaves.filter(x=>x.kind==='tab');
+ return{lesson:'8_12_o',client_id:S.cid,surname:S.surname.trim(),name:S.name.trim(),
+  payload:{status:status||'draft',step:STEPS[S.step].id,situation:S.sit,budget:sit().budget,total:total(b),sel:S.sel,w:S.w,hours:S.hours,q1:S.q1,
+   score:{compat:sc.compat,budget:sc.budget,sit:sc.sit,energy:sc.energy,hours:hoursOk,auto:sc.compat+sc.budget+sc.sit+sc.energy+hoursOk,bonus:gameDone()?1:0},
+   errors:sc.errs.map(x=>x.k),energy:{correctW:sc.W,enteredW:w,psuNeed:Math.max(Math.ceil(sc.W*1.3),b.gpu.rec),psuW:b.psu.watt,hoursCorrect:w>0?Math.round(500/w*10)/10:null},first:S.first,game:{pairs:S.game.pairs,wrong:S.gerr},
+   log:{seconds:nowRel(),leaves:leaves,tabLeaves:tabs.length,tabSeconds:tabs.reduce((s,x)=>s+x.d,0),srcOpens:S.log.srcs.length,copies:S.log.copies,stepSec:S.log.stepSec},
+   catalogDate:PRICE_DATE}};
+}
+function calcRows(b){
+ const rows=[['Материнська плата й вентилятори корпусу',BASE_W]];
+ [['cpu','Процесор'],['gpu','Відеокарта'],['ram','Пам\'ять'],['ssd','Накопичувач'],['cool','Кулер'],['mon','Монітор']].forEach(([k,t])=>rows.push([t+': '+b[k].name,b[k].w]));
+ return rows;
+}
+const REC={
+ socket:'Процесор і материнська плата мають мати однаковий сокет (AM4, AM5 чи LGA1700). Наступного разу після вибору процесора дивіться рядок «Сокет» у характеристиках плати.',
+ ram:'Покоління пам\'яті (DDR4 чи DDR5) визначає материнська плата, а не процесор. Перевірте рядок «Пам\'ять» у характеристиках плати й обирайте модулі саме цього покоління.',
+ case:'Корпус має підходити до формату материнської плати. Плата ATX потребує корпусу ATX, а корпус mATX вміщає лише mATX. Формат вказано в характеристиках і плати, і корпусу.',
+ gpu:'Якщо в процесорі немає вбудованої графіки (наприклад, у Intel з літерою F), без відеокарти зображення не буде. Перевіряйте рядок «Вбудована графіка» в процесора.',
+ cool:'Процесор без кулера в комплекті потребує окремого кулера. Подивіться в «Детальніше» процесора, чи входить кулер у комплект.',
+ psu:'Блок живлення має покривати споживання з запасом 30 % і вимогу відеокарти. Спершу додайте споживання всіх складових, потім помножте на 1,3.'
+};
+function recs(b,sc,r){
+ const out=[],good=[];
+ sc.errs.forEach(e=>out.push((REC[e.k]||'')+' У вашій збірці: '+e.t.charAt(0).toLowerCase()+e.t.slice(1)+'.'));
+ const tot=total(b),bu=sit().budget;
+ if(tot>bu)out.push('Збірка дорожча за бюджет на '+fmt(tot-bu)+' грн. Подивіться, на чому можна заощадити, не втративши потрібних для ситуації вимог. Часто це відеокарта, пам\'ять чи монітор.');
+ else good.push('Збірка вклалася в бюджет.');
+ sc.rq.forEach(x=>{if(!x.ok)out.push('Не виконано вимогу ситуації: '+x.t+'. Перечитайте опис ситуації й подумайте, яка складова за це відповідає.');});
+ const w=Number(S.w);
+ if(!sc.energy)out.push('Ваш підсумок споживання '+(w>0?w:'—')+' Вт, а правильна сума — '+sc.W+' Вт. Додайте всі числа з таблиці споживання, зокрема монітор і 40 Вт на плату з вентиляторами корпусу.');
+ else good.push('Споживання пораховано правильно.');
+ if(!r.payload.score.hours)out.push('Час роботи від зарядної станції рахуємо так: 500 Вт·год ÷ споживання. Для '+sc.W+' Вт це '+(500/sc.W).toFixed(1)+' год. Для вашого підсумку '+(w>0?'('+w+' Вт) — '+(500/w).toFixed(1)+' год':'')+'.');
+ else good.push('Час роботи від зарядної станції пораховано правильно.');
+ if(S.q1.trim().length<80||!/\d/.test(S.q1))out.push('У поясненні додайте числа зі своєї збірки (ціна, обсяг пам\'яті, споживання): так обґрунтування переконливіше.');
+ if(!out.length)good.push('Помилок не знайдено.');
+ const gp=gameDone();
+ if(S.gdone.length>0&&!gp)out.push('У грі «що куди під\'єднати» ще є над чим попрацювати: торкайтеся роз\'ємів на платі й читайте підказки.');
+ if(sc.errs.length===0&&sc.rq.every(x=>x.ok)&&tot<=bu)good.push('Збірка сумісна й підходить до ситуації.');
+ return{out:out,good:good};
+}
+window.view_end=function(a){
+ const b=build(), tot=total(b), sc=scoreAll(b);
+ if(!S.finalR){S.finalR=resultObj('final');save();}
+ const r=S.finalR,e=r.payload.energy,w=Number(S.w),h=Number(S.hours);
+ const calc=calcRows(b);
+ const okW=r.payload.score.energy, okH=r.payload.score.hours;
+ const rc=recs(b,sc,r);
+ const mk=ok=>'<span class="'+(ok?'okc':'bad')+'">'+(ok?'✓ правильно':'✗ неправильно')+'</span>';
+ setH(a,'<h2>Готово</h2><div class="card center"><div class="small">Автоматичні бали</div><div class="score">'+r.payload.score.auto+' з 9</div><p class="small">Ще 3 бали вчителька поставить за відповідь на запитання 1.'+(r.payload.score.bonus?' Бонусний бал за гру зараховано.':'')+'</p></div>'+
+ '<div class="card"><b>Розрахунок споживання</b><table class="t" style="margin-top:6px">'+calc.map(x=>'<tr><td>'+esc(x[0])+'</td><td>'+x[1]+' Вт</td></tr>').join('')+'<tr><td><b>Разом (ПК з монітором)</b></td><td><b>'+e.correctW+' Вт</b></td></tr></table>'+
+ '<p>Ваш підсумок: <b>'+(w>0?w:'—')+' Вт</b> '+mk(okW)+(okW?'':' (правильно '+e.correctW+' Вт)')+'</p>'+
+ '<p>Потрібен блок живлення: '+e.correctW+' × 1,3 = '+Math.ceil(e.correctW*1.3)+' Вт'+(b.gpu.rec>Math.ceil(e.correctW*1.3)?'; але відеокарта вимагає від '+b.gpu.rec+' Вт, тому потрібно від '+e.psuNeed+' Вт':'')+'. Ви обрали '+e.psuW+' Вт: '+mk(e.psuW>=e.psuNeed)+'</p>'+
+ '<p>Зарядна станція 500 Вт·год: 500 ÷ '+e.correctW+' ≈ '+(500/e.correctW).toFixed(1)+' год. Ваша відповідь: '+esc(S.hours)+' год '+mk(okH)+(okH?'':' (для вашого підсумку '+(w>0?(500/w).toFixed(1):'—')+' год)')+'</p></div>'+
+ '<div class="card"><b>Що вдалося</b><ul>'+(rc.good.length?rc.good.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li>Ви довели роботу до кінця.</li>')+'</ul></div>'+
+ '<div class="card"><b>Що можна покращити</b>'+(rc.out.length?'<ul>'+rc.out.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p>Зауважень немає.</p>')+'</div>'+
+ '<div class="card"><b>'+esc(S.surname)+' '+esc(S.name)+'</b><br>'+esc(sit().name)+'<br>Витрачено '+fmt(tot)+' з '+fmt(sit().budget)+' грн<table class="t" style="margin-top:8px">'+Object.keys(CAT).map(k=>'<tr><td>'+TITLE[k]+': '+esc(b[k].name)+'</td><td>'+(b[k].price?fmt(b[k].price)+' грн':'—')+'</td></tr>').join('')+'</table></div>'+
+ '<div class="card" id="sendst"></div><div class="center"><button class="btn sec" id="dl" type="button">Зберегти файл результату</button></div><p class="small center">Зробіть знімок екрана як підтвердження.</p>');
+ $('#dl').onclick=()=>download(r);
+ send();
+};
+function download(r){const blob=new Blob([JSON.stringify(r,null,1)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(r.surname+'_'+r.name+'_12o.json').replace(/\s+/g,'_');a.click();}
+function dbHeaders(){const h={apikey:SUPABASE.key,'Content-Type':'application/json',Prefer:'return=minimal'};if(String(SUPABASE.key).startsWith('eyJ'))h.Authorization='Bearer '+SUPABASE.key;return h;}
+async function post(r){
+ if(!SUPABASE.url)throw new Error('no-db');
+ const res=await fetch(SUPABASE.url+'/rest/v1/results',{method:'POST',headers:dbHeaders(),body:JSON.stringify(r)});
+ if(!res.ok)throw new Error('http '+res.status);
+}
+// Надсилає запис; якщо не вдалося, зберігає в браузері лише останній (його надішле таймер)
+async function saveRecord(r){
+ try{await post(r);try{localStorage.removeItem(QKEY);}catch(_){}if(r.payload.status==='final'){S.sent=true;save();}return true;}
+ catch(e){try{localStorage.setItem(QKEY,JSON.stringify([r]));}catch(_){}return false;}
+}
+// Чернетка: проміжний результат (зберігається в базі, щоб не втратити роботу)
+let draftT=null;
+function saveDraft(){
+ if(S.sent||!SUPABASE.url||!build()||!S.sit)return;
+ clearTimeout(draftT);
+ draftT=setTimeout(()=>{if(S.sent)return;try{saveRecord(resultObj('draft'));}catch(_){}},600);
+}
+async function send(){
+ const el=$('#sendst');if(!el)return;
+ const r=S.finalR;
+ if(S.sent){setH(el,'<b>Результат надіслано ✓</b>');return;}
+ const ok=await saveRecord(r);
+ if(ok)setH(el,'<b>Результат надіслано ✓</b>');
+ else setH(el,SUPABASE.url?'<b>Не вдалося надіслати.</b> Результат збережено в браузері й надішлеться, коли з\'явиться зв\'язок. Не закривайте сторінку.':'<b>Базу не підключено.</b> Натисніть «Зберегти файл результату» й надішліть файл учительці.');
+}
+setInterval(async()=>{if(!SUPABASE.url)return;let q=[];try{q=JSON.parse(localStorage.getItem(QKEY)||'[]');}catch(_){}if(!q.length)return;try{await post(q[0]);localStorage.removeItem(QKEY);if(q[0].payload.status==='final'){S.sent=true;save();const el=$('#sendst');if(el)setH(el,'<b>Результат надіслано ✓</b>');}}catch(e){}},20000);
+// якщо учень залишає сторінку після перевірки, зберігаємо чернетку
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&S.step>=STEPS.findIndex(x=>x.id==='check')&&S.step<iGame()+1)saveDraft();});
+/* ============ НАВІГАЦІЯ ============ */
+$('#bNext').onclick=()=>{
+ stepTime();
+ if(STEPS[S.step].id==='q')saveDraft();
+ if(S.step===0){S.name=S.name.trim();S.surname=S.surname.trim();}
+ S.step=Math.min(S.step+1,STEPS.length-1);
+ save();render();
+};
+$('#bBack').onclick=()=>{stepTime();S.step=Math.max(0,S.step-1);save();render();};
+$('#sum').onclick=()=>{const p=partial();const si=sit();if(!si)return;const lines=Object.keys(S.sel).map(k=>{const it=CAT[k].find(x=>x.id===S.sel[k]);return TITLE[k]+': '+it.name+' — '+(it.price?fmt(it.price)+' грн':'0');});alert((lines.join('\n')||'Ще нічого не обрано')+'\n\nРазом: '+fmt(p.sum)+' грн; бюджет '+fmt(si.budget)+' грн');};
+render();
+</script>
+</body>
+</html>

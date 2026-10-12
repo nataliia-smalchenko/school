@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Результати 12_о</title>
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#1c2333;--mut:#5b6478;--acc:#2f6fed;--acc2:#e8f0ff;--ok:#1b8a4b;--bad:#c62828;--warnbg:#fff4e0;--line:#d9deea}
+@media (prefers-color-scheme:dark){:root{--bg:#12151d;--card:#1b2030;--ink:#e8ecf6;--mut:#9aa4bd;--acc:#6b9cff;--acc2:#222c47;--ok:#58d38b;--bad:#ff8a8a;--warnbg:#3a2a12;--line:#2f3750}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:12px 16px}
+h1{font-size:21px;margin:8px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
+input,select,textarea{font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.btn{font:inherit;font-weight:600;min-height:44px;padding:8px 16px;border-radius:10px;border:0;background:var(--acc);color:#fff;cursor:pointer}
+.btn.sec{background:var(--acc2);color:var(--acc)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{cursor:pointer;color:var(--mut)}
+tr.row{cursor:pointer}tr.row:hover{background:var(--acc2)}
+.warn{background:var(--warnbg);border-radius:6px;padding:1px 6px}
+.bad{color:var(--bad);font-weight:700}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.cols{grid-template-columns:1fr}}
+.small{font-size:13px;color:var(--mut)}
+dl{margin:0}dt{font-weight:600}dd{margin:0 0 6px}
+iframe{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Урок 12_о «Збираю комп'ютер»: результати</h1>
+<div class="card" id="login">
+ <div class="bar"><input type="email" id="em" placeholder="Пошта вчительки" autocomplete="username"><input type="password" id="pw" placeholder="Пароль" autocomplete="current-password"><button class="btn" id="go" type="button">Увійти</button></div>
+ <p class="small" id="lmsg">Вхід лише для вчительки (обліковий запис у Supabase). Без бази можна відкрити файли результатів: <input type="file" id="files" accept=".json" multiple></p>
+</div>
+<div id="main" hidden>
+ <div class="card bar"><input type="search" id="fq" placeholder="Пошук за прізвищем"><select id="fs"><option value="">Усі ситуації</option></select><button class="btn sec" id="rf" type="button">Оновити</button><button class="btn sec" id="csv" type="button">Вивантажити CSV</button><span class="small" id="cnt"></span></div>
+ <div class="card tw"><table id="tb"></table></div>
+ <div id="det"></div>
+</div>
+</div>
+<iframe id="cat" src="8_lesson_12_o.html" title="catalog"></iframe>
+<script>
+const SUPABASE={url:'https://zpozqtlwnzxhesjawmhb.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpwb3pxdGx3bnp4aGVzamF3bWhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3NjExNTEsImV4cCI6MjEwNzMzNzE1MX0.E90Fqt499pB4R4oYdpmQMWgTCmGu2V_BVxYZhvl86rk'}; // ті самі значення, що й у 8_lesson_12_o.html
+function setH(el,h){el.replaceChildren();el.insertAdjacentHTML('beforeend',h);}
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let token=null, rows=[], sortK='created_at', sortD=-1;
+const fmt=n=>Math.round(n).toLocaleString('uk-UA').replace(/[  ]/g,' ');
+// каталог (назви складових і ситуацій) бере зі сторінки учнів; якщо не вийшло — показуються коди
+function cat(){try{return $('#cat').contentWindow.L12O||null;}catch(e){return null;}}
+const nameOf=id=>{const c=cat();if(!c)return id;for(const k in c.CAT){const it=c.CAT[k].find(x=>x.id===id);if(it)return it.name;}return id;};
+const sitOf=id=>{const c=cat();const s=c&&c.SIT.find(x=>x.id===id);return s?s.name:'№'+id;};
+$('#go').onclick=async()=>{
+ if(!SUPABASE.url){$('#lmsg').textContent='У файлі не вказано адресу бази (SUPABASE). Відкрийте файли результатів нижче.';return;}
+ try{
+  const r=await fetch(SUPABASE.url+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:SUPABASE.key,'Content-Type':'application/json'},body:JSON.stringify({email:$('#em').value,password:$('#pw').value})});
+  if(!r.ok)throw new Error('Невірна пошта чи пароль');
+  token=(await r.json()).access_token;load();
+ }catch(e){$('#lmsg').textContent=e.message;}
+};
+function hdr(extra){return Object.assign({apikey:SUPABASE.key,Authorization:'Bearer '+token,'Content-Type':'application/json'},extra||{});}
+async function load(){
+ const r=await fetch(SUPABASE.url+'/rest/v1/results?lesson=eq.8_12_o&select=*&order=created_at.desc',{headers:hdr()});
+ if(!r.ok){$('#lmsg').textContent='Не вдалося завантажити: '+r.status;return;}
+ rows=collapse(await r.json());show();
+}
+// Один учень може мати кілька записів (чернетки й остаточний): беремо найновіший, а бали вчительки з будь-якого
+function collapse(list){
+ const m=new Map();
+ list.forEach(r=>{const k=r.client_id||('id'+r.id);const o=m.get(k);if(!o){m.set(k,r);}else if(!o.teacher&&r.teacher){o.teacher=r.teacher;}});
+ return [...m.values()];
+}
+$('#files').onchange=async e=>{rows=[];let i=0;for(const f of e.target.files){try{const o=JSON.parse(await f.text());o.id='f'+(i++);o.created_at=new Date(f.lastModified).toISOString();rows.push(o);}catch(_){}}show();};
+function show(){
+ $('#login').hidden=true;$('#main').hidden=false;
+ const sits=[...new Set(rows.map(r=>r.payload.situation))].sort();
+ setH($('#fs'),'<option value="">Усі ситуації</option>'+sits.map(s=>'<option value="'+s+'">'+esc(sitOf(s))+'</option>').join(''));
+ draw();
+}
+function info(r){
+ const p=r.payload,l=p.log||{},t=r.teacher||{},q=Number(t.q1)||0;
+ const sus=(l.tabLeaves>=3||l.tabSeconds>=60||l.copies>0);
+ return{r:r,p:p,l:l,t:t,sus:sus,auto:p.score.auto,q1:t.q1==null?'—':t.q1,total:p.score.auto+q+p.score.bonus};
+}
+function draw(){
+ const f=$('#fq').value.toLowerCase(),fs=$('#fs').value;
+ const a=rows.filter(r=>(r.surname+' '+r.name).toLowerCase().includes(f)&&(!fs||String(r.payload.situation)===fs)).map(info);
+ const key={created_at:x=>x.r.created_at,surname:x=>x.r.surname,sit:x=>x.p.situation,total:x=>x.total,auto:x=>x.auto,time:x=>x.l.seconds||0,leaves:x=>x.l.tabLeaves||0}[sortK]||(x=>x.r.created_at);
+ a.sort((x,y)=>(key(x)>key(y)?1:-1)*sortD);
+ let h='<tr><th data-k="surname">Учень</th><th>Стан</th><th data-k="sit">Ситуація</th><th>Витрачено</th><th data-k="auto">Авто (з 9)</th><th>Відкр. (з 3)</th><th>Бонус</th><th data-k="total">Разом</th><th data-k="time">Час, хв</th><th data-k="leaves">Виходи</th><th>Джерела</th></tr>';
+ a.forEach(x=>{h+='<tr class="row" data-id="'+esc(x.r.id)+'"><td>'+esc(x.r.surname+' '+x.r.name)+'</td><td>'+(x.p.status==='draft'?'<span class="warn">чернетка</span>':'надіслано')+'</td><td>'+esc(sitOf(x.p.situation).slice(0,26))+'</td><td class="'+(x.p.total>x.p.budget?'bad':'')+'">'+fmt(x.p.total)+' / '+fmt(x.p.budget)+'</td><td>'+x.auto+'</td><td>'+x.q1+'</td><td>'+x.p.score.bonus+'</td><td><b>'+x.total+'</b></td><td>'+Math.round((x.l.seconds||0)/60*10)/10+'</td><td>'+(x.sus?'<span class="warn">⚠ ':'')+(x.l.tabLeaves||0)+' · '+(x.l.tabSeconds||0)+' с'+(x.l.copies?', копій: '+x.l.copies:'')+(x.sus?'</span>':'')+'</td><td>'+(x.l.srcOpens||0)+'</td></tr>';});
+ setH($('#tb'),h);$('#cnt').textContent='Записів: '+a.length;
+ document.querySelectorAll('#tb th[data-k]').forEach(th=>{th.onclick=()=>{if(sortK===th.dataset.k)sortD*=-1;else{sortK=th.dataset.k;sortD=1;}draw();};});
+ document.querySelectorAll('#tb tr.row').forEach(tr=>{tr.onclick=()=>detail(tr.dataset.id);});
+}
+['fq','fs'].forEach(i=>{$('#'+i).oninput=draw;});
+$('#rf').onclick=()=>token?load():draw();
+function selList(sel){return Object.keys(sel||{}).map(k=>'<dt>'+esc(k)+'</dt><dd>'+esc(nameOf(sel[k]))+'</dd>').join('');}
+function detail(id){
+ const x=info(rows.find(r=>String(r.id)===String(id))),p=x.p,l=x.l,t=x.t,f=p.first;
+ const leaves=(l.leaves||[]).map(v=>esc(v.kind==='source'?'джерело':'вкладка')+', '+v.d+' с, крок «'+esc(v.step)+'», на '+v.t+' с').join('<br>')||'немає виходів';
+ const steps=Object.keys(l.stepSec||{}).map(k=>esc(k)+': '+l.stepSec[k]+' с').join(' · ');
+ setH($('#det'),'<div class="card"><h2 style="margin:0 0 6px">'+esc(x.r.surname+' '+x.r.name)+'</h2><p class="small">'+esc(sitOf(p.situation))+'. Бюджет '+fmt(p.budget)+' грн. Дата цін: '+esc(p.catalogDate)+'.</p>'+
+ '<div class="cols"><div><b>Остаточна збірка ('+fmt(p.total)+' грн, '+esc(p.w)+' Вт)</b><dl>'+selList(p.sel)+'</dl></div>'+
+ '<div><b>Перша спроба'+(f?' ('+fmt(f.total)+' грн)':'')+'</b>'+(f?'<dl>'+selList(f.sel)+'</dl><p class="small">Бали першої спроби: сумісність '+f.score.compat+'/3, бюджет '+f.score.budget+'/1, ситуація '+f.score.sit+'/3, споживання '+f.score.energy+'/1.</p>':'<p class="small">немає</p>')+'</div></div>'+
+ '<p><b>Бали (авто):</b> сумісність '+p.score.compat+'/3 · бюджет '+p.score.budget+'/1 · ситуація '+p.score.sit+'/3 · споживання '+p.score.energy+'/1 · години '+p.score.hours+'/1 = <b>'+p.score.auto+' з 9</b>. Бонус: '+p.score.bonus+' (пар: '+(p.game?p.game.pairs:0)+'). Помилки сумісності: '+(p.errors&&p.errors.length?esc(p.errors.join(', ')):'немає')+'.</p>'+
+ (p.energy?'<p><b>Енергія:</b> правильно '+p.energy.correctW+' Вт, учень записав '+esc(p.energy.enteredW)+' Вт; потрібен БЖ від '+p.energy.psuNeed+' Вт, обрано '+p.energy.psuW+' Вт; правильний час від станції ≈ '+(500/p.energy.correctW).toFixed(1)+' год.</p>':'')+'<p><b>Запитання 1.</b> '+esc(p.q1)+'</p><p><b>Запитання 2.</b> '+esc(p.hours)+' год при '+esc(p.w)+' Вт (очікується ≈ '+(Number(p.w)>0?(500/Number(p.w)).toFixed(1):'—')+').</p>'+
+ '<p><b>Поведінка на сторінці:</b> усього '+Math.round((l.seconds||0)/60*10)/10+' хв; виходів з вкладки '+(l.tabLeaves||0)+' ('+(l.tabSeconds||0)+' с); відкрито джерел '+(l.srcOpens||0)+'; копіювань і вставок '+(l.copies||0)+'.</p><p class="small">'+leaves+'</p><p class="small">Час по кроках: '+steps+'</p>'+
+ '<div class="bar"><label>Бали за запитання 1 (0–3): <input type="number" id="tq" min="0" max="3" value="'+esc(t.q1==null?'':t.q1)+'" style="width:70px"></label><input type="text" id="tc" placeholder="Коментар" value="'+esc(t.comment||'')+'" style="flex:1;min-width:200px"><button class="btn" id="ts" type="button">Зберегти</button><span class="small" id="tm"></span></div>'+
+ '<p class="small">Критерій для запитання 1: 3 б. — обґрунтовано всі три складові числами зі збірки; 2 б. — дві; 1 б. — загальні слова без чисел; 0 — немає відповіді по суті.</p></div>');
+ $('#ts').onclick=async()=>{
+  const v={q1:Math.max(0,Math.min(3,Number($('#tq').value)||0)),comment:$('#tc').value};
+  const row=rows.find(r=>String(r.id)===String(id));
+  if(!token){row.teacher=v;$('#tm').textContent='Збережено лише на сторінці (без бази).';draw();return;}
+  const r=await fetch(SUPABASE.url+'/rest/v1/results?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:hdr({Prefer:'return=minimal'}),body:JSON.stringify({teacher:v})});
+  if(r.ok){row.teacher=v;$('#tm').textContent='Збережено ✓';draw();}else $('#tm').textContent='Помилка '+r.status;
+ };
+ $('#det').scrollIntoView({behavior:'smooth'});
+}
+$('#csv').onclick=()=>{
+ const a=rows.map(info);const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+ let c='Прізвище;Ім\'я;Ситуація;Бюджет;Витрачено;Авто;Запитання 1;Бонус;Разом;Час, хв;Виходи (кількість);Виходи (с);Джерела;Копіювань\n';
+ a.forEach(x=>{c+=[q(x.r.surname),q(x.r.name),q(sitOf(x.p.situation)),x.p.budget,x.p.total,x.auto,x.q1,x.p.score.bonus,x.total,Math.round((x.l.seconds||0)/60*10)/10,x.l.tabLeaves||0,x.l.tabSeconds||0,x.l.srcOpens||0,x.l.copies||0].join(';')+'\n';});
+ const b=new Blob(['﻿'+c],{type:'text/csv;charset=utf-8'});const u=document.createElement('a');u.href=URL.createObjectURL(b);u.download='12_o_результати.csv';u.click();
+};
+</script>
+</body>
+</html>
